@@ -1,6 +1,11 @@
 # AdvX
 
-赛道拟定：
+# status check
+用户拍照→狗狗匹配→？？（环节缺失）→Adopt/stake 全流程（Injective）
+增加机构入口（前端 但是第一入口是牌照）
+
+
+# 赛道拟定：
 1. Injective Web3 General
 可选方向 1：Injective Web3 ｜评选标准
 加入 Injective 的革命性 Web3 赛道，构建下一代 Web3大规模等应用！
