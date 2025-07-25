@@ -10,7 +10,7 @@ const Home = () => {
         <div>
             <Navbar></Navbar>
             <Banner></Banner>
-            <AIMatching />
+            {/* <AIMatching /> */}
             <Footer></Footer>
         </div>
     );

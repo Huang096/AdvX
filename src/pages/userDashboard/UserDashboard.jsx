@@ -4,7 +4,7 @@ import Navbar from '../../shared/navbar/Navbar';
 import Footer from '../../shared/footer/Footer';
 import UserProfile from './userProfile/UserProfile'; // 导入我们全新的组件
 import ContentPlaza from './ContentPlaza'; // 1. 导入新组件
-import RulesAndPrizes from './RulesAndPrizes'; // 1. 导入新组件
+// import RulesAndPrizes from './RulesAndPrizes'; // 1. 导入新组件
 import OrgProfile from './orgProfile/OrgProfile'; // 1. 导入最终的容器组件
 
 // The placeholder is no longer needed

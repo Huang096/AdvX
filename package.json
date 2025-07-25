@@ -44,7 +44,10 @@
     "swiper": "^11.2.10",
     "viem": "^2.33.0",
     "wagmi": "^2.16.0",
-    "yup": "^1.6.1"
+    "yup": "^1.6.1",
+    "@injectivelabs/sdk-ts": "^1.15.43",
+    "@injectivelabs/wallet-ts": "^1.14.41",
+    "@cosmjs/cosmwasm-stargate": "^0.32.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

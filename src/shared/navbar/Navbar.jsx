@@ -1,8 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { useEffect, useState } from "react";
-// import { AuthContext } from "../../components/providers/AuthProvider"; // Removed
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 
 // import icon from '../../assets/user.png';
@@ -56,6 +54,9 @@ const Navbar = ({ children }) => {
     <li className=" "><NavLink to="/" className={({ isActive, isPending }) =>
                     isPending ? "pending " : isActive ? " text-[#fff] font-bold  rounded-3xl bg-[#D52B5C] px-6 py-2 underline-offset-8  hover:text-red " : ""
                   }>Home</NavLink></li>
+    <li><NavLink to="/mint" className={({ isActive, isPending }) =>
+                    isPending ? "pending" : isActive ? "text-[#fff] font-bold rounded-3xl bg-[#D52B5C] px-6 py-2 underline-offset-8 hover:text-red" : ""
+                  }>铸造 NFT</NavLink></li>
     <li><NavLink to="/userdashboard" className={({ isActive, isPending }) =>
                     isPending ? "pending" : isActive ? "text-[#fff] font-bold rounded-3xl bg-[#D52B5C] px-6 py-2 underline-offset-8 hover:text-red" : ""
                   }>我的主页</NavLink></li>
@@ -106,7 +107,7 @@ const Navbar = ({ children }) => {
               </div>
 
               <div className="hidden lg:flex items-center">
-                <ConnectButton />
+                <button className="btn btn-primary">连接钱包</button>
               </div>
       
               <div className="ml-5">
@@ -136,7 +137,7 @@ const Navbar = ({ children }) => {
           <ul className="menu p-4 w-80 min-h-full bg-base-200">
             {navLinks}
            <div className="flex items-center">
-             <ConnectButton />
+             <button className="btn btn-primary">连接钱包</button>
            </div>
           </ul>
         </div>
