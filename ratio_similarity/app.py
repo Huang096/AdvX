@@ -1,11 +1,14 @@
+
 #!/usr/bin/env python3
 import os
 import tempfile
 import base64
 from flask import Flask, request, jsonify
 from ratio_similarity.main import pipeline  # 导入你现成的 pipeline
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # 假设你的 dogRatios 永远存放在项目目录下的这个位置
 BASE_DIR      = os.path.dirname(__file__)                # .../AdvX/ratio_similarity
