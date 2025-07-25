@@ -3,8 +3,8 @@ import cv2, os, json, argparse
 import mediapipe as mp
 
 # —— 配置路径 ——
-INPUT_DIR  = "data/humanImg"
-OUTPUT_DIR = "data/humanKeypoint"
+INPUT_DIR = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanImg/humanImg1.jpg"
+OUTPUT_DIR = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanKeypoint"
 
 # —— 语义映射表（带 name） ——
 LANDMARK_MAP = {

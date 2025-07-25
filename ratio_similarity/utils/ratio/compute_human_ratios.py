@@ -3,8 +3,8 @@ import os, json, math, argparse
 
 # —— 目录配置 —— 
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
-INPUT_DIR   = os.path.join(BASE_DIR, "..", "data", "humanKeypoint")
-OUTPUT_DIR  = os.path.join(BASE_DIR, "..", "data", "humanRatios")
+INPUT_DIR   = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanKeypoint"
+OUTPUT_DIR  = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanRatios"
 
 def dist(p1, p2):
     return math.hypot(p1["x"] - p2["x"], p1["y"] - p2["y"])
