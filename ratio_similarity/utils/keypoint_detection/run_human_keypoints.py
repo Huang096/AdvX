@@ -3,7 +3,7 @@ import cv2, os, json, argparse
 import mediapipe as mp
 
 # —— 配置路径 ——
-INPUT_DIR = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanImg/humanImg1.jpg"
+INPUT_DIR = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanImg"
 OUTPUT_DIR = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanKeypoint"
 
 # —— 语义映射表（带 name） ——
@@ -65,11 +65,17 @@ def main():
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # 支持单张图或目录
+    # 支持目录，自动读取第一张图片
     if os.path.isdir(args.input_dir):
-        imgs = [os.path.join(args.input_dir, f)
-                for f in os.listdir(args.input_dir)
-                if f.lower().endswith((".jpg", ".png"))]
+        imgs = sorted([
+            os.path.join(args.input_dir, f)
+            for f in os.listdir(args.input_dir)
+            if f.lower().endswith((".jpg", ".png"))
+        ])
+        if not imgs:
+            print(f"[ERROR] No image found in {args.input_dir}")
+            return
+        imgs = [imgs[0]]  # 只处理第一张图片
     else:
         imgs = [args.input_dir]
 

@@ -10,7 +10,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# 假设你的 dogRatios 永远存放在项目目录下的这个位置
+# dogRatio是肯定不会变的，所以这里写死，后面接数据库就好了
 BASE_DIR      = os.path.dirname(__file__)                # .../AdvX/ratio_similarity
 DOG_RATIO_DIR = os.path.join(BASE_DIR, "data", "dogRatios")
 DOG_IMG_DIR   = os.path.join(BASE_DIR, "data", "dogImg")

@@ -9,14 +9,19 @@ from typing import List
 from openai import OpenAI
 
 # ====== 配置区域 ======
-USER_IMAGE_PATH = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanImg/humanImg1.jpg"
+USER_IMAGE_PATH = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/humanImg"
 DOG_IMG_DIR = "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/dogImg"
 GROUP_SIZE = 3  # 每轮比对的图片数
 
-client = OpenAI(
-    api_key=os.environ.get("MOONSHOT_API_KEY"),
-    base_url="https://api.moonshot.cn/v1",
-)
+# 直接列目录，取第一项
+files = os.listdir(USER_IMAGE_DIR)
+if not files:
+    print(f"❌ 目录下没有找到任何图片：{USER_IMAGE_DIR}")
+    sys.exit(1)
+
+# 取第一个文件，拼成绝对路径
+USER_IMAGE_PATH = os.path.join(USER_IMAGE_DIR, files[0])
+print(f"▶️ 选用目录中唯一一张人脸图：{USER_IMAGE_PATH}")
 
 # ====== 工具函数 ======
 
@@ -35,7 +40,7 @@ def compare_images_with_user(user_image: str, candidate_images: List[str]) -> st
             "type": "image_url",
             "image_url": { "url": encode_image_base64(user_image) }
         },
-        { "type": "text", "text": "请从下列狗狗图片中挑选出一张与我上传的图片（上面）最相似的，并说明原因。" }
+        { "type": "text", "text": "从科学辩证的角度来说，帮我找出图片上的人长得最像哪只狗狗，要有理有据" }
     ]
 
     for i, path in enumerate(candidate_images):
