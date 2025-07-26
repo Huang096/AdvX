@@ -18,24 +18,24 @@ const AIMatching = () => {
   const [isMasterDecrypted, setIsMasterDecrypted] = useState(false);
 
   useEffect(() => {
-    if (masterImage) {
+    if (!loading && matchResult) {
       const timer = setTimeout(() => {
         setIsMasterModalOpen(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [masterImage]);
+  }, [loading, matchResult]);
 
   const capture = useCallback(async () => {
     const screenshot = webcamRef.current.getScreenshot();
     if (!screenshot) return;
 
-    const previousUserImage = localStorage.getItem('lastUserImage');
+    const previousUserImage = localStorage.getItem("lastUserImage");
     if (previousUserImage) {
       setMasterImage(previousUserImage);
     }
-    localStorage.setItem('lastUserImage', screenshot);
-    
+    localStorage.setItem("lastUserImage", screenshot);
+
     setUserImgSrc(screenshot);
     setLoading(true);
     setMatchResult(null);
@@ -151,55 +151,83 @@ const AIMatching = () => {
 
           <div className="mt-8 max-w-2xl mx-auto">
             <div className="card bg-base-100 shadow-xl p-6">
-                <h3 className="text-2xl font-bold text-left">它的故事</h3>
-                <p className="my-4 text-left">{matchResult.shortDescription}</p>
-                <div className="flex justify-start gap-2 flex-wrap">
-                    <div className="badge badge-outline">{matchResult.age}</div>
-                    <div className="badge badge-outline">{matchResult.breed}</div>
-                    <div className="badge badge-outline">{matchResult.gender}</div>
+              <h3 className="text-2xl font-bold text-left">它的故事</h3>
+              <p className="my-4 text-left">{matchResult.shortDescription}</p>
+              <div className="mt-4 text-left">
+                <p className="whitespace-pre-wrap">{matchResult.description}</p>
+              </div>
+              <div className="mt-6 flex justify-between items-center">
+                <div className="card-actions">
+                  <button onClick={reset} className="btn btn-ghost">
+                    再试一次
+                  </button>
+                  <Link to="/userdashboard" className="btn btn-primary">
+                    进入它的主页，开始云养
+                  </Link>
                 </div>
-                <div className="mt-6 flex justify-between items-center">
-                    <div className="card-actions">
-                        <button onClick={reset} className="btn btn-ghost">再试一次</button>
-                        <Link to="/userdashboard" className="btn btn-primary">
-                            进入它的主页，开始云养
-                        </Link>
-                    </div>
-                </div>
+              </div>
             </div>
           </div>
-        </dialog>
+        </div>
       )}
 
       {isMasterModalOpen && (
         <dialog open className="modal modal-bottom sm:modal-middle modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg text-center">WHO'S YOUR MASTER?</h3>
-            <p className="py-2 text-center">你知道这个小狗的主人是谁吗？狗界翻版的你主人是谁呢？</p>
-            
+            <h3 className="font-bold text-lg text-center">
+              WHO'S YOUR MASTER?
+            </h3>
+            <p className="py-2 text-center">
+              你知道这个小狗的主人是谁吗？狗界翻版的你主人是谁呢？
+            </p>
+
             <div className="my-4 flex justify-center">
               {isMasterDecrypted ? (
-                <img src={masterImage} alt="The previous user" className="w-full h-auto rounded-lg max-w-xs" />
+                <img
+                  src={masterImage}
+                  alt="The previous user"
+                  className="w-full h-auto rounded-lg max-w-xs"
+                />
               ) : (
                 <div className="w-full h-48 rounded-lg">
-                  <img src={redbookLogo} alt="Post to Xiaohongshu to reveal" className="w-full h-full object-cover rounded-lg" />
+                  <img
+                    src={redbookLogo}
+                    alt="Post to Xiaohongshu to reveal"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </div>
               )}
             </div>
 
             {!isMasterDecrypted ? (
-                <div className="text-center">
-                    <p>分享到小红书，带上话题 <span className="font-bold">#WHOSYOURMASTER</span> 揭晓TA的真面目！</p>
-                    <button onClick={() => setIsMasterDecrypted(true)} className="btn btn-error mt-4 text-white">我已分享，立即揭晓</button>
-                </div>
+              <div className="text-center">
+                <p>
+                  分享到小红书，带上话题{" "}
+                  <span className="font-bold">#WHOSYOURMASTER</span>{" "}
+                  揭晓TA的真面目！
+                </p>
+                <button
+                  onClick={() => setIsMasterDecrypted(true)}
+                  className="btn btn-error mt-4 text-white"
+                >
+                  我已分享，立即揭晓
+                </button>
+              </div>
             ) : (
-                <div className="text-center">
-                  <p className="font-bold">已揭晓！</p>
-                </div>
+              <div className="text-center">
+                <p className="font-bold">已揭晓！</p>
+              </div>
             )}
 
             <div className="modal-action">
-                <button className="btn" onClick={() => { setIsMasterModalOpen(false) }}>关闭</button>
+              <button
+                className="btn"
+                onClick={() => {
+                  setIsMasterModalOpen(false);
+                }}
+              >
+                关闭
+              </button>
             </div>
           </div>
         </dialog>
