@@ -1,0 +1,101 @@
+{
+  "image": "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/dogImg/osaka24.png",
+  "keypoints": [
+    {
+      "id": 8,
+      "name": "chin",
+      "x": 610.0,
+      "y": 827.0
+    },
+    {
+      "id": 17,
+      "name": "left_eyebrow_start",
+      "x": 336.0,
+      "y": 461.0
+    },
+    {
+      "id": 21,
+      "name": "left_eyebrow_end",
+      "x": 489.0,
+      "y": 431.0
+    },
+    {
+      "id": 22,
+      "name": "right_eyebrow_start",
+      "x": 549.0,
+      "y": 418.0
+    },
+    {
+      "id": 26,
+      "name": "right_eyebrow_end",
+      "x": 682.0,
+      "y": 406.0
+    },
+    {
+      "id": 30,
+      "name": "nose_tip",
+      "x": 568.0,
+      "y": 589.0
+    },
+    {
+      "id": 31,
+      "name": "nose_left",
+      "x": 529.0,
+      "y": 635.0
+    },
+    {
+      "id": 35,
+      "name": "nose_right",
+      "x": 600.0,
+      "y": 616.0
+    },
+    {
+      "id": 36,
+      "name": "left_eye_outer",
+      "x": 393.0,
+      "y": 497.0
+    },
+    {
+      "id": 39,
+      "name": "left_eye_inner",
+      "x": 474.0,
+      "y": 496.0
+    },
+    {
+      "id": 42,
+      "name": "right_eye_inner",
+      "x": 589.0,
+      "y": 479.0
+    },
+    {
+      "id": 45,
+      "name": "right_eye_outer",
+      "x": 658.0,
+      "y": 467.0
+    },
+    {
+      "id": 48,
+      "name": "mouth_left",
+      "x": 517.0,
+      "y": 751.0
+    },
+    {
+      "id": 51,
+      "name": "upper_lip",
+      "x": 581.0,
+      "y": 693.0
+    },
+    {
+      "id": 54,
+      "name": "mouth_right",
+      "x": 624.0,
+      "y": 711.0
+    },
+    {
+      "id": 57,
+      "name": "lower_lip",
+      "x": 597.0,
+      "y": 749.0
+    }
+  ]
+}

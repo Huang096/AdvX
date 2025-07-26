@@ -1,0 +1,101 @@
+{
+  "image": "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/dogImg/1.png",
+  "keypoints": [
+    {
+      "id": 8,
+      "name": "chin",
+      "x": 295.0,
+      "y": 754.0
+    },
+    {
+      "id": 17,
+      "name": "left_eyebrow_start",
+      "x": 27.0,
+      "y": 371.0
+    },
+    {
+      "id": 21,
+      "name": "left_eyebrow_end",
+      "x": 163.0,
+      "y": 304.0
+    },
+    {
+      "id": 22,
+      "name": "right_eyebrow_start",
+      "x": 248.0,
+      "y": 286.0
+    },
+    {
+      "id": 26,
+      "name": "right_eyebrow_end",
+      "x": 402.0,
+      "y": 290.0
+    },
+    {
+      "id": 30,
+      "name": "nose_tip",
+      "x": 239.0,
+      "y": 472.0
+    },
+    {
+      "id": 31,
+      "name": "nose_left",
+      "x": 205.0,
+      "y": 517.0
+    },
+    {
+      "id": 35,
+      "name": "nose_right",
+      "x": 280.0,
+      "y": 508.0
+    },
+    {
+      "id": 36,
+      "name": "left_eye_outer",
+      "x": 79.0,
+      "y": 404.0
+    },
+    {
+      "id": 39,
+      "name": "left_eye_inner",
+      "x": 160.0,
+      "y": 390.0
+    },
+    {
+      "id": 42,
+      "name": "right_eye_inner",
+      "x": 275.0,
+      "y": 362.0
+    },
+    {
+      "id": 45,
+      "name": "right_eye_outer",
+      "x": 361.0,
+      "y": 335.0
+    },
+    {
+      "id": 48,
+      "name": "mouth_left",
+      "x": 192.0,
+      "y": 617.0
+    },
+    {
+      "id": 51,
+      "name": "upper_lip",
+      "x": 252.0,
+      "y": 558.0
+    },
+    {
+      "id": 54,
+      "name": "mouth_right",
+      "x": 329.0,
+      "y": 597.0
+    },
+    {
+      "id": 57,
+      "name": "lower_lip",
+      "x": 263.0,
+      "y": 655.0
+    }
+  ]
+}

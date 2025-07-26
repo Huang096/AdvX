@@ -1,0 +1,11 @@
+{
+  "image": "/Users/huangzheheng/Desktop/NY/ny1.png",
+  "ratios": {
+    "brow_width_ratio": 3.3661922107924855,
+    "eye_width_ratio": 4.4662193614527474,
+    "mouth_width_ratio": 1.8646509262923925,
+    "mouth_height_ratio": 1.4587270530790246,
+    "nose_to_mouth_ratio": 1.1435437497937313,
+    "lip_aspect_ratio": 0.7823057026440371
+  }
+}
