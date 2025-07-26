@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaExternalLinkAlt, FaTimes } from 'react-icons/fa';
 import NFTMinter from '../../../components/NFTMinter';
-import { INJECTIVE_TESTNET } from '../../../contract/nftContract';
+import contractConfig from '../../../contract/config.json';
 
-const LOCAL_STORAGE_KEY = 'my-doggo-nfts';
+const LOCAL_STORAGE_KEY = 'my-doggo-nfts-v2';
 
 // Re-usable NFT Card component
 const DoggoNFTCard = ({ nft, onCardClick }) => (
@@ -92,7 +92,7 @@ const MyDoggoNFTs = () => {
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <input type="text" readOnly value={selectedNft.txHash} className="input input-bordered input-sm w-full truncate" />
-                                        <a href={`${INJECTIVE_TESTNET.explorerUrl}/tx/${selectedNft.txHash}`} target="_blank" rel="noopener noreferrer" className="btn btn-square btn-sm">
+                                        <a href={`https://testnet.blockscout.injective.network/tx/${selectedNft.txHash}`} target="_blank" rel="noopener noreferrer" className="btn btn-square btn-sm">
                                             <FaExternalLinkAlt />
                                         </a>
                                     </div>

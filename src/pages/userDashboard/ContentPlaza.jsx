@@ -1,66 +1,131 @@
-import React, { useState } from 'react'; // 1. Import useState
-import { FaHeart, FaComment, FaImage } from 'react-icons/fa';
-import strayDogImage from '../../assets/stray-dog.png'; 
+import React, { useState } from 'react';
+import { FaHeart, FaComment, FaImage, FaTimes } from 'react-icons/fa';
+import strayDogImage from '../../assets/stray-dog.png';
+import PostCard from './userProfile/PostCard';
 
-// PostCard is now more complex, handling its own state via props
-const PostCard = ({ post, onLike, onComment, userPoints }) => {
+const PostDetailModal = ({ post, onClose, onLike, onComment, userPoints }) => {
+    if (!post) return null;
+
+    const [commentText, setCommentText] = useState('');
     const likeCost = 1;
     const commentCost = 2;
 
     const handleLike = () => {
         if (userPoints >= likeCost && !post.isLiked) {
             onLike(post.id, likeCost);
-        } else if (post.isLiked) {
-            // Optional: Implement unlike logic if needed
-        } else {
-            alert("积分不足，无法点赞！");
         }
     };
     
-    // We'll just simulate the comment action
-    const handleComment = () => {
-        if (userPoints >= commentCost) {
-            onComment(post.id, commentCost);
-             alert("评论成功！(扣除2积分)");
-        } else {
+    const handleSendComment = () => {
+        if (userPoints < commentCost) {
             alert("积分不足，无法评论！");
+            return;
         }
+        if (commentText.trim() === '') {
+            alert("评论内容不能为空！");
+            return;
+        }
+        onComment(post.id, commentCost, commentText);
+        setCommentText(''); // Clear input after sending
     };
 
     return (
-        <div className="card bg-base-100 shadow-xl mb-6">
-            <figure><img src={post.image} alt="Pet post" className="w-full h-64 object-cover" /></figure>
-            <div className="card-body">
-                <div className="flex items-center gap-4 mb-2">
-                    <div className="avatar">
-                        <div className="w-10 rounded-full">
-                            <img src={post.authorAvatar} alt={post.author} />
+        <div 
+            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+            onClick={onClose} // Click on overlay to close
+        >
+            <div 
+                className="bg-base-100 rounded-lg shadow-2xl flex flex-col md:flex-row max-w-4xl w-full max-h-[90vh] overflow-hidden"
+                onClick={(e) => e.stopPropagation()} // Prevent click from bubbling to overlay
+            >
+                {/* Image Section */}
+                <div className="w-full md:w-1/2">
+                    <img src={post.image} alt="Pet post" className="w-full h-full object-cover" />
+                </div>
+                
+                {/* Content Section */}
+                <div className="w-full md:w-1/2 flex flex-col p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="avatar">
+                            <div className="w-12 rounded-full">
+                                <img src={post.authorAvatar} alt={post.author} />
+                            </div>
+                        </div>
+                        <div>
+                            <p className="font-bold text-lg">{post.author}</p>
+                            <p className="text-sm text-gray-500">{post.timestamp}</p>
                         </div>
                     </div>
-                    <div>
-                        <p className="font-bold">{post.author}</p>
-                        <p className="text-xs">{post.timestamp}</p>
+
+                    {/* Scrollable Content Area */}
+                    <div className="flex-grow overflow-y-auto mb-4 pr-2">
+                        <p className="mb-4">{post.content}</p>
+
+                        {/* Comments Section */}
+                        <div className="border-t pt-4">
+                            <h4 className="font-bold text-sm mb-2">共 {post.comments?.length || 0} 条评论</h4>
+                            <div className="space-y-4">
+                                {post.comments && post.comments.map(comment => (
+                                    <div key={comment.id} className="flex items-start gap-3">
+                                        <div className="avatar placeholder">
+                                            <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
+                                                <span>{comment.author.charAt(0)}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm">{comment.author}</p>
+                                            <p>{comment.text}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                {!post.comments || post.comments.length === 0 && (
+                                     <p className="text-sm text-gray-500 text-center py-4">还没有评论，快来抢沙发吧！</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Bottom Action Bar */}
+                    <div className="flex-shrink-0">
+                        <div className="flex items-center text-sm mb-4">
+                            <FaHeart className="text-red-500 mr-2" />
+                            <span>{post.likes} 人喜欢</span>
+                        </div>
+                        {/* Action Buttons */}
+                        <div className="border-t pt-4">
+                             <div className="flex justify-around items-center mb-4">
+                                <button 
+                                    className={`btn btn-ghost w-full ${post.isLiked ? 'text-red-500' : ''}`}
+                                    onClick={handleLike}
+                                    disabled={post.isLiked}
+                                >
+                                    <FaHeart />
+                                    {post.isLiked ? '已赞' : `点赞 (-${likeCost})`}
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <div className="btn btn-ghost w-full cursor-default">
+                                    <FaComment />
+                                    <span>评论 (-{commentCost})</span>
+                                </div>
+                            </div>
+                            {/* New Comment Input */}
+                            <div className="flex items-center gap-2">
+                                <input 
+                                    type="text"
+                                    placeholder="说点什么..."
+                                    className="input input-bordered w-full rounded-full"
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                />
+                                <button onClick={handleSendComment} className="btn btn-primary rounded-full">发送</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <p>{post.content}</p>
-                <div className="card-actions justify-end mt-4 items-center">
-                    <span className="text-sm mr-2">{post.likes} 人喜欢</span>
-                    <button 
-                        className={`btn btn-ghost btn-sm ${post.isLiked ? 'text-red-500' : ''}`}
-                        onClick={handleLike}
-                        disabled={post.isLiked}
-                    >
-                        <FaHeart />
-                        {post.isLiked ? '已赞' : '点赞 (-1 积分)'}
-                    </button>
-                    <button 
-                        className="btn btn-ghost btn-sm"
-                        onClick={handleComment}
-                    >
-                        <FaComment />
-                        评论 (-2 积分)
-                    </button>
-                </div>
+                {/* Close Button */}
+                <button onClick={onClose} className="absolute top-4 right-4 text-white md:text-gray-800 text-2xl hover:text-red-500 transition-colors">
+                    <FaTimes />
+                </button>
             </div>
         </div>
     );
@@ -68,20 +133,19 @@ const PostCard = ({ post, onLike, onComment, userPoints }) => {
 
 
 const CreatePost = () => (
-    <div className="card bg-base-200 shadow p-4 mb-8">
+    <div className="card bg-base-200 shadow p-4 mb-8 col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4">
         <textarea className="textarea textarea-bordered w-full" placeholder="分享 小黄 的新鲜事..."></textarea>
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-between items-center mt-2">
             <button className="btn btn-primary btn-sm">
-                <FaImage />
+                <FaImage className="mr-2" />
                 上传图片
             </button>
-            <button className="btn btn-primary btn-sm ml-2">发布</button>
+            <button className="btn btn-primary btn-sm">发布</button>
         </div>
     </div>
 );
 
-const ContentPlaza = ({ userType, userPoints, setUserPoints }) => { // Receive props
-    // Mock data now includes likes and isLiked state
+const ContentPlaza = ({ userType, userPoints, setUserPoints }) => {
     const initialPosts = [
         { 
             id: 1, 
@@ -102,42 +166,125 @@ const ContentPlaza = ({ userType, userPoints, setUserPoints }) => { // Receive p
             timestamp: "昨天",
             likes: 32,
             isLiked: false,
+            comments: [
+                { id: 3, author: '铲屎官-C', text: '太萌了，想抱走！' }
+            ]
         }
     ];
 
     const [posts, setPosts] = useState(initialPosts);
+    const [selectedPost, setSelectedPost] = useState(null);
 
     const handleLikePost = (postId, cost) => {
-        setUserPoints(currentPoints => currentPoints - cost);
-        setPosts(currentPosts => 
-            currentPosts.map(post => 
-                post.id === postId 
-                    ? { ...post, likes: post.likes + 1, isLiked: true } 
-                    : post
-            )
+        // Optimistic UI update
+        const updatedPosts = posts.map(p => 
+            p.id === postId ? { ...p, likes: p.likes + 1, isLiked: true } : p
         );
+        setPosts(updatedPosts);
+        if (selectedPost && selectedPost.id === postId) {
+            setSelectedPost(prev => ({ ...prev, likes: prev.likes + 1, isLiked: true }));
+        }
+
+        // Simulate successful API call and update points
+        setUserPoints(currentPoints => currentPoints - cost);
+        
+        // The fetch call is commented out to prevent errors during frontend dev
+        /*
+        fetch(`/api/posts/${postId}/like`, { method: 'POST' })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                setUserPoints(data.newUserPoints);
+            })
+            .catch(error => {
+                console.error('Error liking post:', error);
+                alert('点赞失败，请稍后再试。');
+                // Revert UI on error
+                setPosts(originalPosts);
+                if (selectedPost && selectedPost.id === postId) {
+                    setSelectedPost(originalPosts.find(p => p.id === postId));
+                }
+            });
+        */
     };
 
-    const handleCommentPost = (postId, cost) => {
+    const handleCommentPost = (postId, cost, commentText) => {
+        const newComment = {
+            id: Date.now(), // Using timestamp for a simple unique ID
+            author: '我', // This should be replaced with the actual current user's name
+            text: commentText,
+        };
+
+        const updatePostWithComment = (p) => {
+            if (p.id === postId) {
+                const existingComments = p.comments || [];
+                return { ...p, comments: [newComment, ...existingComments] }; // Add to the top
+            }
+            return p;
+        };
+        
+        // Optimistically update the UI
+        const updatedPosts = posts.map(updatePostWithComment);
+        setPosts(updatedPosts);
+        if (selectedPost && selectedPost.id === postId) {
+            setSelectedPost(updatePostWithComment);
+        }
+
+        // Simulate successful API call and update points
         setUserPoints(currentPoints => currentPoints - cost);
-        // Here you might want to open a comment modal or something similar.
-        // For now, we just deduct points.
+        
+        // The fetch call is commented out to prevent errors during frontend dev
+        /*
+        fetch(`/api/posts/${postId}/comment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: commentText }),
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                setUserPoints(data.newUserPoints);
+                alert('评论成功！');
+                // Here you would also add the new comment to the state
+            })
+            .catch(error => {
+                console.error('Error commenting on post:', error);
+                alert('评论失败，请稍后再试。');
+            });
+        */
+    };
+
+    const handleOpenModal = (post) => {
+        setSelectedPost(post);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedPost(null);
     };
 
     return (
-        <div>
+        <div className="p-4">
             {userType === 2 && <CreatePost />}
-            <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {posts.map(post => (
                     <PostCard 
                         key={post.id} 
                         post={post} 
-                        onLike={handleLikePost}
-                        onComment={handleCommentPost}
-                        userPoints={userPoints}
+                        onClick={handleOpenModal}
                     />
                 ))}
             </div>
+            <PostDetailModal 
+                post={selectedPost}
+                onClose={handleCloseModal}
+                onLike={handleLikePost}
+                onComment={handleCommentPost}
+                userPoints={userPoints}
+            />
         </div>
     );
 };
