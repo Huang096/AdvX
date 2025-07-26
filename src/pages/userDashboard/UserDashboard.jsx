@@ -63,7 +63,7 @@ const UserDashboard = () => {
                             </div>
                         </div>
                         <div className="font-bold text-lg">
-                            当前积分: <span className="text-primary">{userPoints}</span>
+                            当前积分: <span className="text-secondary">{userPoints}</span>
                         </div>
                     </div>
                 </div>

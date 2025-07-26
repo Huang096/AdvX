@@ -24,10 +24,30 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
+// 添加 Injective EVM 测试网配置
+const injectiveTestnet = {
+  id: 1439,
+  name: 'Injective EVM Testnet',
+  network: 'injective-testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Injective',
+    symbol: 'INJ',
+  },
+  rpcUrls: {
+    public: { http: ['https://k8s.testnet.json-rpc.injective.network/'] },
+    default: { http: ['https://k8s.testnet.json-rpc.injective.network/'] },
+  },
+  blockExplorers: {
+    default: { name: 'Blockscout', url: 'https://testnet.blockscout.injective.network/' },
+  },
+  testnet: true,
+};
+
 const config = getDefaultConfig({
   appName: 'WHO\'S YOUR MASTER',
   projectId: 'a671fe9e58f0db6ec65ba3aaa32e0315', // 请在这里替换为从 WalletConnect Cloud 复制的完整ID
-  chains: [mainnet, polygon, optimism, arbitrum, base],
+  chains: [injectiveTestnet], // <-- 只保留 Injective 测试网
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 

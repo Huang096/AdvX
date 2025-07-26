@@ -1,9 +1,10 @@
 import React from 'react';
 import { FaArrowRight, FaChartPie, FaCoins, FaGift, FaHandHoldingHeart } from 'react-icons/fa';
+import PrizePoolDisplay from '../../components/PrizePoolDisplay';
+import DonationBox from '../../components/DonationBox'; // 1. Import the new component
 
 const RulesAndPrizes = () => {
-    // Mock data for demo purposes
-    const totalPrizePool = "10.25 ETH";
+    // Mock data for demo purposes - we can keep this for the ranking part
     const topDogs = [
         { name: "小黄", points: 1350, color: "progress-primary" },
         { name: "咖啡", points: 980, color: "progress-success" },
@@ -13,13 +14,9 @@ const RulesAndPrizes = () => {
     const maxPoints = Math.max(...topDogs.map(d => d.points));
 
     return (
-        <div className="space-y-8">
-            {/* 1. 总奖池 */}
-            <div className="text-center p-8 bg-base-200 rounded-box shadow-lg">
-                <h2 className="text-2xl font-bold">当前实时总奖池</h2>
-                <p className="text-5xl font-bold text-primary my-4">{totalPrizePool}</p>
-                <p className="text-sm text-base-content/70">由 AdventureX及公益社区共同捐助，所有资金由智能合约管理，公开透明。</p>
-            </div>
+        <div className="space-y-8 p-4 md:p-0"> {/* Add some padding for mobile */}
+            {/* 1. Real-time Prize Pool Display */}
+            <PrizePoolDisplay /> {/* 2. Use the new component here */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* 2. 如何为狗狗赢取奖励？ */}
@@ -28,14 +25,17 @@ const RulesAndPrizes = () => {
                         <h3 className="card-title">如何为狗狗赢取奖励？ (面向爱心人士)</h3>
                         <div className="divider"></div>
                         <p className="font-bold">赚取积分:</p>
-                        <ul className="list-disc list-inside space-y-1">
+                        <ul className="list-disc list-inside space-y-2">
                             <li>每日签到: <span className="font-bold text-green-500">+5 积分</span></li>
-                            <li>爱心捐助: <span className="font-bold text-green-500">每 0.1U 获 10 积分</span></li>
+                            <li>
+                                爱心捐助: <span className="font-bold text-green-500">每 0.1INJ 获 10 积分</span>
+                                <DonationBox /> {/* 2. Place the new component here */}
+                            </li>
                         </ul>
                         <p className="font-bold mt-4">使用积分:</p>
                         <ul className="list-disc list-inside space-y-1">
-                            <li>点赞帖子: <span className="font-bold text-red-500">-1 积分</span> (流向狗狗)</li>
-                            <li>评论帖子: <span className="font-bold text-red-500">-2 积分</span> (流向狗狗)</li>
+                            <li>点赞帖子: <span className="font-bold text-red-500">送给小狗1积分</span> </li>
+                            <li>评论帖子: <span className="font-bold text-red-500">送给小狗2积分</span> </li>
                         </ul>
                         <div className="divider">核心逻辑</div>
                         <div className="flex items-center justify-center gap-2 text-center text-sm md:gap-4">
@@ -53,7 +53,7 @@ const RulesAndPrizes = () => {
                     <div className="card-body">
                         <h3 className="card-title">领养方如何瓜分奖池？ (面向领养方)</h3>
                         <div className="divider"></div>
-                        <p className="mb-4">奖池会在每个月底，根据本月每只狗狗获得的<strong className="text-primary">总积分占比</strong>，自动分配给对应的领养人/机构。</p>
+                        <p className="mb-4">奖池会在每个月底，根据本月每只狗狗获得的<strong className="text-secondary">总积分占比</strong>，自动分配给对应的领养人/机构。</p>
                         
                         <p className="font-bold flex items-center gap-2"><FaChartPie /> 当前狗狗积分排名:</p>
                         <div className="space-y-3 mt-2">
