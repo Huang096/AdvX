@@ -1,6 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { Link } from 'react-router-dom';
+import redbookLogo from '../../../assets/redbook.png';
 
 const AIMatching = () => {
   const webcamRef = useRef(null);
@@ -8,10 +9,28 @@ const AIMatching = () => {
   const [matching, setMatching] = useState(false);
   const [matchResult, setMatchResult] = useState(null);
   const [similarity, setSimilarity] = useState(0);
+  const [masterImage, setMasterImage] = useState(null);
+  const [isMasterModalOpen, setIsMasterModalOpen] = useState(false);
+  const [isMasterDecrypted, setIsMasterDecrypted] = useState(false);
+
+  useEffect(() => {
+    if (masterImage) {
+      const timer = setTimeout(() => {
+        setIsMasterModalOpen(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [masterImage]);
 
   const capture = useCallback(async () => {
     const screenshot = webcamRef.current.getScreenshot();
     if (!screenshot) return;
+
+    const previousUserImage = localStorage.getItem('lastUserImage');
+    if (previousUserImage) {
+      setMasterImage(previousUserImage);
+    }
+    localStorage.setItem('lastUserImage', screenshot);
     
     setUserImgSrc(screenshot);
     setMatching(true);
@@ -62,6 +81,9 @@ const AIMatching = () => {
     setUserImgSrc(null);
     setMatching(false);
     setMatchResult(null);
+    setMasterImage(null);
+    setIsMasterModalOpen(false);
+    setIsMasterDecrypted(false);
   };
 
   return (
@@ -140,6 +162,40 @@ const AIMatching = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {isMasterModalOpen && (
+        <dialog open className="modal modal-bottom sm:modal-middle modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg text-center">WHO'S YOUR MASTER?</h3>
+            <p className="py-2 text-center">你知道这个小狗的主人是谁吗？狗界翻版的你主人是谁呢？</p>
+            
+            <div className="my-4 flex justify-center">
+              {isMasterDecrypted ? (
+                <img src={masterImage} alt="The previous user" className="w-full h-auto rounded-lg max-w-xs" />
+              ) : (
+                <div className="w-full h-48 rounded-lg">
+                  <img src={redbookLogo} alt="Post to Xiaohongshu to reveal" className="w-full h-full object-cover rounded-lg" />
+                </div>
+              )}
+            </div>
+
+            {!isMasterDecrypted ? (
+                <div className="text-center">
+                    <p>分享到小红书，带上话题 <span className="font-bold">#WHOSYOURMASTER</span> 揭晓TA的真面目！</p>
+                    <button onClick={() => setIsMasterDecrypted(true)} className="btn btn-error mt-4 text-white">我已分享，立即揭晓</button>
+                </div>
+            ) : (
+                <div className="text-center">
+                  <p className="font-bold">已揭晓！</p>
+                </div>
+            )}
+
+            <div className="modal-action">
+                <button className="btn" onClick={() => { setIsMasterModalOpen(false) }}>关闭</button>
+            </div>
+          </div>
+        </dialog>
       )}
     </div>
   );
