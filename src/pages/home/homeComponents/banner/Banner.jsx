@@ -23,7 +23,7 @@ const Banner = () => {
     const missions = [
         { icon: <FaPaw />, title: "AI 智能匹配", description: "为你找到长相最像你的流浪毛孩。" },
         { icon: <FaUsers />, title: "专属内容社区", description: "见证每一只流浪狗的成长点滴。" },
-        { icon: <FaCubes />, title: "铸造链上身份 (NFT)", description: "成为它在元宇宙中永远的守护者。" },
+        { icon: <FaCubes />, title: "铸造Injective链上身份 (NFT)", description: "成为它在元宇宙中永远的守护者。" },
         { icon: <FaHandHoldingHeart />, title: "透明捐赠与激励", description: "所有善款公开透明，用于帮助个人和机构。" }
     ];
 
@@ -61,7 +61,7 @@ const Banner = () => {
 
                     {/* Right Column: Mission */}
                     <div className="bg-base-200 p-8 rounded-2xl shadow-lg">
-                        <h2 className="text-2xl font-bold mb-6 text-center">我们的理念</h2>
+                        <h2 className="text-2xl font-bold mb-6 text-center">跨越web2和web3的流浪狗社区</h2>
                         <div className="space-y-6">
                             {missions.map((mission, index) => (
                                 <MissionItem key={index} {...mission} />

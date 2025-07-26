@@ -110,7 +110,7 @@ const AIMatching = () => {
               </div>
             </div>
 
-            <div className="text-3xl font-bold text-primary">{similarity}% <br /> 相似</div>
+            <div className="text-3xl font-bold text-secondary">{similarity}% <br /> 相似</div>
 
             <div className="card w-64 bg-base-100 shadow-xl">
               <figure><img src={matchResult.petImage} alt={matchResult.petName} className="w-full h-auto" /></figure>
@@ -129,11 +129,13 @@ const AIMatching = () => {
                     <div className="badge badge-outline">{matchResult.breed}</div>
                     <div className="badge badge-outline">{matchResult.gender}</div>
                 </div>
-                <div className="card-actions justify-end mt-6">
-                    <button onClick={reset} className="btn btn-ghost">再试一次</button>
-                    <Link to={`/pet/${matchResult.id}`} className="btn btn-primary">
-                        进入它的主页，开始云养
-                    </Link>
+                <div className="mt-6 flex justify-between items-center">
+                    <div className="card-actions">
+                        <button onClick={reset} className="btn btn-ghost">再试一次</button>
+                        <Link to="/userdashboard" className="btn btn-primary">
+                            进入它的主页，开始云养
+                        </Link>
+                    </div>
                 </div>
             </div>
           </div>

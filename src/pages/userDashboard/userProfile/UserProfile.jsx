@@ -14,7 +14,7 @@ const UserProfile = ({ userPoints }) => { // 1. Receive userPoints as a prop
                 <div>
                     <h2 className="card-title">{userName}</h2>
                     {/* 3. Use the prop */}
-                    <p className="font-bold text-primary">当前可用积分: {userPoints}</p>
+                    <p className="font-bold text-secondary">当前可用积分: {userPoints}</p>
                 </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
