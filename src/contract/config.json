@@ -1,5 +1,6 @@
 {
-  "petNftAddress": "0x0b0703797a076bbf63407246a281947b20e03051",
-  "rewardPoolAddress": "0xd96d958c083480f49611326d7a564ebe302ed8b0",
+  "petNftAddress": "0xa5f6372a30b5348f839d390529ae556693c5fa08",
+  "rewardPoolAddress": "0x2fa3e4d1c27c81f28041cf2c0e124c48895f6676",
+  "demoRewardPoolAddress": "0xff8a34b28726f287bbe51a039cae068573d54fee",
   "injective_testnet_rpc_url": "https://k8s.testnet.json-rpc.injective.network/"
 }

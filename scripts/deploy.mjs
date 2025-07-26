@@ -82,6 +82,7 @@ async function main() {
     console.log('\nLoading contract artifacts...');
     const simplePetNFTArtifact = loadContractArtifact('SimplePetNFT');
     const rewardPoolArtifact = loadContractArtifact('RewardPool');
+    const demoRewardPoolArtifact = loadContractArtifact('DemoRewardPool'); // Load the new artifact
     console.log('Artifacts loaded successfully.');
 
     // 3. Deploy SimplePetNFT contract
@@ -116,16 +117,34 @@ async function main() {
     console.log(`✅ RewardPool contract deployed successfully at: ${rewardPoolAddress}`);
     console.log(`   View on Injective Explorer: ${injectiveTestnet.blockExplorers.default.url}/address/${rewardPoolAddress}`);
 
+    // 5. Deploy DemoRewardPool contract
+    console.log('\nDeploying DemoRewardPool contract...');
+    const demoRewardPoolHash = await walletClient.deployContract({
+        abi: demoRewardPoolArtifact.abi,
+        bytecode: `0x${demoRewardPoolArtifact.bytecode}`,
+        args: [], // No constructor arguments needed for this contract
+    });
+    console.log(`  -> Deployment transaction sent. Hash: ${demoRewardPoolHash}`);
+    const demoRewardPoolReceipt = await publicClient.waitForTransactionReceipt({ hash: demoRewardPoolHash });
+    const demoRewardPoolAddress = demoRewardPoolReceipt.contractAddress;
+    if (!demoRewardPoolAddress) {
+        throw new Error('Failed to deploy DemoRewardPool contract.');
+    }
+    console.log(`✅ DemoRewardPool contract deployed successfully at: ${demoRewardPoolAddress}`);
+    console.log(`   View on Injective Explorer: ${injectiveTestnet.blockExplorers.default.url}/address/${demoRewardPoolAddress}`);
+
 
     console.log('\n\n--- Deployment Summary ---');
-    console.log('SimplePetNFT Address:', petNftAddress);
-    console.log('RewardPool Address:  ', rewardPoolAddress);
+    console.log('SimplePetNFT Address:    ', petNftAddress);
+    console.log('RewardPool Address:      ', rewardPoolAddress);
+    console.log('DemoRewardPool Address:  ', demoRewardPoolAddress); // Add to summary
     console.log('--------------------------\n');
 
-    // 5. Save deployed addresses to a config file for frontend use
+    // 6. Save deployed addresses to a config file for frontend use
     const config = {
         petNftAddress,
         rewardPoolAddress,
+        demoRewardPoolAddress, // Add the new address to the config
         injective_testnet_rpc_url: rpcUrl,
         // Add other relevant info if needed
     };
