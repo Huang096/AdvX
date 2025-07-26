@@ -1,0 +1,11 @@
+{
+  "image": "/Users/huangzheheng/Desktop/heart-tokushima/tokushima43.png",
+  "ratios": {
+    "brow_width_ratio": 2.2589121596066932,
+    "eye_width_ratio": 2.8899066679243046,
+    "mouth_width_ratio": 1.7641880711992692,
+    "mouth_height_ratio": 0.6290908566079031,
+    "nose_to_mouth_ratio": 0.8896688213798046,
+    "lip_aspect_ratio": 0.3565894514751233
+  }
+}

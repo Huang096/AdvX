@@ -1,0 +1,11 @@
+{
+  "image": "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/dogImg/2.png",
+  "ratios": {
+    "brow_width_ratio": 2.256267327074407,
+    "eye_width_ratio": 3.198822173123909,
+    "mouth_width_ratio": 2.085645807401507,
+    "mouth_height_ratio": 0.6289637766200554,
+    "nose_to_mouth_ratio": 1.1998504528892473,
+    "lip_aspect_ratio": 0.3015678761887559
+  }
+}

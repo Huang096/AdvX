@@ -1,41 +1,115 @@
-import React from 'react';
-import { FaCoins } from 'react-icons/fa';
-import strayDogImage from '../../../assets/stray-dog.png';
+import React, { useState, useEffect } from 'react';
+import { FaPlus, FaExternalLinkAlt, FaTimes } from 'react-icons/fa';
+import NFTMinter from '../../../components/NFTMinter';
+import { INJECTIVE_TESTNET } from '../../../contract/nftContract';
 
-const DoggoNFTCard = ({ dog }) => (
-    <div className="card card-compact bg-base-200 shadow">
-        <figure><img src={dog.image} alt={dog.name} className="h-40 w-full object-cover" /></figure>
+const LOCAL_STORAGE_KEY = 'my-doggo-nfts';
+
+// Re-usable NFT Card component
+const DoggoNFTCard = ({ nft, onCardClick }) => (
+    <div className="card card-compact bg-base-200 shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" onClick={() => onCardClick(nft)}>
+        <figure><img src={nft.imageUrl} alt={nft.name} className="h-48 w-full object-cover" /></figure>
         <div className="card-body">
-            <h2 className="card-title text-base">{dog.name}</h2>
-            <div className="flex items-center text-sm">
-                <FaCoins className="text-warning mr-1" />
-                <span>总积分: {dog.points}</span>
-            </div>
-            <div className="card-actions justify-end">
-                <button className="btn btn-primary btn-xs">查看详情</button>
-            </div>
+            <h2 className="card-title text-lg font-bold">{nft.name}</h2>
+            <p className="text-sm text-base-content/70 truncate" title={nft.description}>{nft.description}</p>
         </div>
     </div>
 );
 
 
 const MyDoggoNFTs = () => {
-    // Mock data for the demo
-    const nfts = [
-        { id: 1, name: "小黄", image: strayDogImage, points: 1350 },
-        { id: 2, name: "旺财", image: "https://placedog.net/400/300?id=2", points: 760 },
-        { id: 3, name: "来福", image: "https://placedog.net/400/300?id=3", points: 320 },
-    ];
+    const [showMinter, setShowMinter] = useState(false);
+    const [myNfts, setMyNfts] = useState([]);
+    const [selectedNft, setSelectedNft] = useState(null);
+
+    // Load NFTs from localStorage on component mount
+    useEffect(() => {
+        try {
+            const storedNfts = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            setMyNfts(storedNfts);
+        } catch (error) {
+            console.error("Failed to parse NFTs from localStorage", error);
+            setMyNfts([]);
+        }
+    }, []);
+
+    // Callback function for when a new NFT is successfully minted
+    const handleNftMinted = (newNftData) => {
+        // Add the new NFT to the start of the list
+        const updatedNfts = [newNftData, ...myNfts];
+        setMyNfts(updatedNfts);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedNfts));
+        setShowMinter(false); // Hide the minter panel after success
+        setSelectedNft(newNftData); // Automatically show details for the new NFT
+    };
 
     return (
-        <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-                <h2 className="card-title">我的狗狗 NFT</h2>
-                <div className="divider my-1"></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {nfts.map(dog => <DoggoNFTCard key={dog.id} dog={dog} />)}
+        <div className="space-y-6">
+            <div className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                    <div className="flex justify-between items-center">
+                        <h2 className="card-title text-xl font-bold">我的狗狗 NFT ({myNfts.length})</h2>
+                        <button 
+                            className="btn btn-primary btn-sm"
+                            onClick={() => {
+                                setShowMinter(!showMinter);
+                                setSelectedNft(null); // Hide details when showing minter
+                            }}
+                        >
+                            <FaPlus className="mr-2" />
+                            {showMinter ? '收起铸造面板' : '铸造新 NFT'}
+                        </button>
+                    </div>
+                    <div className="divider mt-2 mb-4"></div>
+                    
+                    {myNfts.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {myNfts.map((nft, index) => <DoggoNFTCard key={nft.txHash || index} nft={nft} onCardClick={setSelectedNft} />)}
+                        </div>
+                    ) : (
+                        <p className="text-center text-base-content/60 py-8">您还没有狗狗 NFT，快去铸造一个吧！</p>
+                    )}
                 </div>
             </div>
+            
+            {/* Conditional Panel for Details or Minter */}
+            {selectedNft && !showMinter && (
+                <div className="card bg-base-200 shadow-xl slide-in-bottom">
+                    <div className="card-body relative">
+                        <button onClick={() => setSelectedNft(null)} className="btn btn-sm btn-circle btn-ghost absolute top-2 right-2">
+                            <FaTimes />
+                        </button>
+                        <h3 className="card-title">NFT 详情</h3>
+                        <div className="flex flex-col sm:flex-row gap-6 mt-4">
+                            <img src={selectedNft.imageUrl} alt={selectedNft.name} className="w-full sm:w-1/3 h-auto object-cover rounded-lg shadow-md" />
+                            <div className="space-y-2 flex-grow">
+                                <h4 className="text-lg font-bold">{selectedNft.name}</h4>
+                                <p className="text-base-content/80">{selectedNft.description}</p>
+                                <p className="text-xs text-base-content/60">铸造于: {new Date(selectedNft.timestamp).toLocaleString()}</p>
+                                <div className="form-control pt-2">
+                                    <label className="label py-0">
+                                        <span className="label-text">交易哈希:</span>
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <input type="text" readOnly value={selectedNft.txHash} className="input input-bordered input-sm w-full truncate" />
+                                        <a href={`${INJECTIVE_TESTNET.explorerUrl}/tx/${selectedNft.txHash}`} target="_blank" rel="noopener noreferrer" className="btn btn-square btn-sm">
+                                            <FaExternalLinkAlt />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {showMinter && (
+                <div className="card bg-base-100 shadow-xl slide-in-bottom">
+                    <div className="card-body">
+                        <NFTMinter onNftMinted={handleNftMinted} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

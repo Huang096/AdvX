@@ -1,0 +1,11 @@
+{
+  "image": "/Users/huangzheheng/Desktop/AdvX/ratio_similarity/data/dogImg/osaka29.png",
+  "ratios": {
+    "brow_width_ratio": 2.324121945038576,
+    "eye_width_ratio": 3.0403830611122573,
+    "mouth_width_ratio": 1.514882653567827,
+    "mouth_height_ratio": 0.7990545810393727,
+    "nose_to_mouth_ratio": 1.213700621432779,
+    "lip_aspect_ratio": 0.5274696222558574
+  }
+}

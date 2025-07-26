@@ -1,0 +1,101 @@
+{
+  "image": "/Users/huangzheheng/Desktop/NY/ny2.png",
+  "keypoints": [
+    {
+      "id": 8,
+      "name": "chin",
+      "x": 495.0,
+      "y": 786.0
+    },
+    {
+      "id": 17,
+      "name": "left_eyebrow_start",
+      "x": 222.0,
+      "y": 339.0
+    },
+    {
+      "id": 21,
+      "name": "left_eyebrow_end",
+      "x": 423.0,
+      "y": 314.0
+    },
+    {
+      "id": 22,
+      "name": "right_eyebrow_start",
+      "x": 534.0,
+      "y": 309.0
+    },
+    {
+      "id": 26,
+      "name": "right_eyebrow_end",
+      "x": 694.0,
+      "y": 313.0
+    },
+    {
+      "id": 30,
+      "name": "nose_tip",
+      "x": 509.0,
+      "y": 517.0
+    },
+    {
+      "id": 31,
+      "name": "nose_left",
+      "x": 444.0,
+      "y": 552.0
+    },
+    {
+      "id": 35,
+      "name": "nose_right",
+      "x": 552.0,
+      "y": 546.0
+    },
+    {
+      "id": 36,
+      "name": "left_eye_outer",
+      "x": 287.0,
+      "y": 385.0
+    },
+    {
+      "id": 39,
+      "name": "left_eye_inner",
+      "x": 396.0,
+      "y": 392.0
+    },
+    {
+      "id": 42,
+      "name": "right_eye_inner",
+      "x": 552.0,
+      "y": 385.0
+    },
+    {
+      "id": 45,
+      "name": "right_eye_outer",
+      "x": 650.0,
+      "y": 371.0
+    },
+    {
+      "id": 48,
+      "name": "mouth_left",
+      "x": 396.0,
+      "y": 657.0
+    },
+    {
+      "id": 51,
+      "name": "upper_lip",
+      "x": 499.0,
+      "y": 621.0
+    },
+    {
+      "id": 54,
+      "name": "mouth_right",
+      "x": 571.0,
+      "y": 654.0
+    },
+    {
+      "id": 57,
+      "name": "lower_lip",
+      "x": 497.0,
+      "y": 686.0
+    }
+  ]
+}

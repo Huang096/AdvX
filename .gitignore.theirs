@@ -1,0 +1,45 @@
+# Byte-compiled / cache / virtualenv
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+*.dll
+*.dylib
+*.egg-info/
+*.egg
+.env
+.venv
+env/
+venv/
+
+# IDE / Editor config
+.vscode/
+.idea/
+*.swp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Python test/output artifacts
+*.log
+*.out
+*.tmp
+*.bak
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+
+# MediaPipe / Model / Torch cache
+mediapipe/modules/face_landmark/face_landmark.tflite
+models/*.bz2
+models/*.dat
+models/*.pth
+*.onnx
+
+# Project output
+data/human_keypoints/
+data/dog_keypoints/
+*.json
+db.sqlite

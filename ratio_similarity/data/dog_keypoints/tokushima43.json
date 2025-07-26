@@ -1,0 +1,101 @@
+{
+  "image": "/Users/huangzheheng/Desktop/heart-tokushima/tokushima43.png",
+  "keypoints": [
+    {
+      "id": 8,
+      "name": "chin",
+      "x": 222.0,
+      "y": 426.0
+    },
+    {
+      "id": 17,
+      "name": "left_eyebrow_start",
+      "x": 77.0,
+      "y": 185.0
+    },
+    {
+      "id": 21,
+      "name": "left_eyebrow_end",
+      "x": 156.0,
+      "y": 160.0
+    },
+    {
+      "id": 22,
+      "name": "right_eyebrow_start",
+      "x": 203.0,
+      "y": 151.0
+    },
+    {
+      "id": 26,
+      "name": "right_eyebrow_end",
+      "x": 314.0,
+      "y": 161.0
+    },
+    {
+      "id": 30,
+      "name": "nose_tip",
+      "x": 184.0,
+      "y": 256.0
+    },
+    {
+      "id": 31,
+      "name": "nose_left",
+      "x": 165.0,
+      "y": 281.0
+    },
+    {
+      "id": 35,
+      "name": "nose_right",
+      "x": 228.0,
+      "y": 275.0
+    },
+    {
+      "id": 36,
+      "name": "left_eye_outer",
+      "x": 105.0,
+      "y": 205.0
+    },
+    {
+      "id": 39,
+      "name": "left_eye_inner",
+      "x": 155.0,
+      "y": 206.0
+    },
+    {
+      "id": 42,
+      "name": "right_eye_inner",
+      "x": 234.0,
+      "y": 197.0
+    },
+    {
+      "id": 45,
+      "name": "right_eye_outer",
+      "x": 287.0,
+      "y": 187.0
+    },
+    {
+      "id": 48,
+      "name": "mouth_left",
+      "x": 156.0,
+      "y": 336.0
+    },
+    {
+      "id": 51,
+      "name": "upper_lip",
+      "x": 203.0,
+      "y": 309.0
+    },
+    {
+      "id": 54,
+      "name": "mouth_right",
+      "x": 267.0,
+      "y": 324.0
+    },
+    {
+      "id": 57,
+      "name": "lower_lip",
+      "x": 211.0,
+      "y": 348.0
+    }
+  ]
+}
