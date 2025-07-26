@@ -1,6 +1,6 @@
 {
-  "petNftAddress": "0x8cb15f6ba87cb3939321e01427017845d5fe965b",
-  "rewardPoolAddress": "0x5edb4ea6d07e83a4be8584d248186ae74044b9e4",
-  "demoRewardPoolAddress": "0xa3f77cae82ce5e2951e4d2f661c14afc000b3956",
+  "petNftAddress": "0xa553bdea868f9242ae072bfe752c2fe8bb3acffe",
+  "rewardPoolAddress": "0x96910691b2591f53af4252f5d7ec501232b744fe",
+  "demoRewardPoolAddress": "0x76081dc52b8a016afa899b0d69b7654d19cf5cbd",
   "injective_testnet_rpc_url": "https://k8s.testnet.json-rpc.injective.network/"
 }

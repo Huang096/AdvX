@@ -82,7 +82,7 @@ async function main() {
     console.log('\nLoading contract artifacts...');
     const simplePetNFTArtifact = loadContractArtifact('SimplePetNFT');
     const rewardPoolArtifact = loadContractArtifact('RewardPool');
-    const demoRewardPoolArtifact = loadContractArtifact('DemoRewardPool'); // Load the new artifact
+    // Note: We'll load NFTRewardPool artifact later when we need it
     console.log('Artifacts loaded successfully.');
 
     // 3. Deploy SimplePetNFT contract
@@ -117,12 +117,13 @@ async function main() {
     console.log(`✅ RewardPool contract deployed successfully at: ${rewardPoolAddress}`);
     console.log(`   View on Injective Explorer: ${injectiveTestnet.blockExplorers.default.url}/address/${rewardPoolAddress}`);
 
-    // 5. Deploy DemoRewardPool contract
-    console.log('\nDeploying DemoRewardPool contract...');
+    // 5. Deploy DemoRewardPool contract (NFTRewardPool)
+    console.log('\nDeploying DemoRewardPool (NFTRewardPool) contract...');
+    const nftRewardPoolArtifact = loadContractArtifact('NFTRewardPool'); // Load the correct artifact name
     const demoRewardPoolHash = await walletClient.deployContract({
-        abi: demoRewardPoolArtifact.abi,
-        bytecode: `0x${demoRewardPoolArtifact.bytecode}`,
-        args: [], // No constructor arguments needed for this contract
+        abi: nftRewardPoolArtifact.abi,
+        bytecode: `0x${nftRewardPoolArtifact.bytecode}`,
+        args: [petNftAddress], // Pass the NFT contract address as constructor argument
     });
     console.log(`  -> Deployment transaction sent. Hash: ${demoRewardPoolHash}`);
     const demoRewardPoolReceipt = await publicClient.waitForTransactionReceipt({ hash: demoRewardPoolHash });
@@ -130,7 +131,7 @@ async function main() {
     if (!demoRewardPoolAddress) {
         throw new Error('Failed to deploy DemoRewardPool contract.');
     }
-    console.log(`✅ DemoRewardPool contract deployed successfully at: ${demoRewardPoolAddress}`);
+    console.log(`✅ DemoRewardPool (NFTRewardPool) contract deployed successfully at: ${demoRewardPoolAddress}`);
     console.log(`   View on Injective Explorer: ${injectiveTestnet.blockExplorers.default.url}/address/${demoRewardPoolAddress}`);
 
 
