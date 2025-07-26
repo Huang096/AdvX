@@ -1,10 +1,11 @@
-
 #!/usr/bin/env python3
 import os
 import tempfile
 import base64
 from flask import Flask, request, jsonify
 from ratio_similarity.main import pipeline  # 导入你现成的 pipeline
+from ratio_similarity.kimi.myPost.textGen import describe_image_with_kimi
+from ratio_similarity.kimi.autoGen.autoGen import autoGen_txt4dog
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -61,6 +62,57 @@ def compare():
         "image_path": final_img,
         "image":      f"data:image/jpeg;base64,{img_b64}" if img_b64 else None,
         "description": description
+    })
+
+@app.route("/api/describe", methods=["POST"])
+def describe():
+    # 1. 校验前端上传的文件字段
+    if "image" not in request.files:
+        return jsonify({"error": "No image file"}), 400
+    file = request.files["image"]
+    if file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    # 2. 保存到临时目录
+    with tempfile.TemporaryDirectory() as td:
+        img_path = os.path.join(td, file.filename)
+        file.save(img_path)
+
+        try:
+            # 3. 调用 textGen.py 中的函数，传入本地图片路径
+            description = describe_image_with_kimi(img_path)
+        except Exception as e:
+            # 上游任何异常都返回 500，并把错误信息透出来
+            return jsonify({"error": str(e)}), 500
+
+    # 4. 返回纯文本描述
+    return jsonify({
+        "description": description
+    })
+
+@app.route("/api/autogen", methods=["POST"])
+def autogen():
+    # 1. 校验图片
+    if "image" not in request.files:
+        return jsonify({"error": "No image file"}), 400
+    file = request.files["image"]
+    if file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    # 2. 保存到临时目录
+    with tempfile.TemporaryDirectory() as td:
+        img_path = os.path.join(td, file.filename)
+        file.save(img_path)
+
+        try:
+            # 3. 调用 autoGen.py 中的函数
+            result = autoGen_txt4dog(img_path)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    # 4. 返回生成的文本
+    return jsonify({
+        "text": result
     })
 
 
