@@ -24,13 +24,13 @@ def compare():
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
 
-    # 2. 读取 top_k 参数
+    # 2. 读取 top_k 参数（内部仍然传给 pipeline，但我们只关心最终那一张）
     try:
         top_k = int(request.form.get("top_k", 3))
     except ValueError:
         top_k = 3
 
-    # 3. 用临时目录存放人脸图片、keypoints、ratios
+    # 3. 存到临时目录并调用 pipeline
     with tempfile.TemporaryDirectory() as td:
         img_path = os.path.join(td, file.filename)
         file.save(img_path)
@@ -39,34 +39,30 @@ def compare():
         human_ratio_dir = os.path.join(td, "human_ratio")
 
         try:
-            results = pipeline(
+            final_img, description = pipeline(
                 img_path,
                 human_kpt_dir,
                 human_ratio_dir,
                 DOG_RATIO_DIR,
+                DOG_IMG_DIR,
                 top_k=top_k
             )
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-        # 4. 格式化输出，并把图片读进来做 Base64 编码
-        out = []
-        for fn, dist in results[:top_k]:
-            # fn 例如 "10_ratios.json"，去掉 "_ratios.json" 后缀拿到 "10"
-            base = os.path.splitext(fn)[0].replace("_ratios", "")
-            img_file = os.path.join(DOG_IMG_DIR, base + ".jpg")
-            img_b64 = None
-            if os.path.exists(img_file):
-                with open(img_file, "rb") as f:
-                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
-            out.append({
-                "dog_file": fn,
-                "distance": dist,
-                "image": f"data:image/jpeg;base64,{img_b64}" if img_b64 else None
-            })
+        # 4. 把最终选中的图片读成 base64
+        img_b64 = None
+        if os.path.exists(final_img):
+            with open(final_img, "rb") as f:
+                img_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # 临时目录里所有文件都已自动删除
-    return jsonify({"results": out})
+    # 临时目录清理后返回结果
+    return jsonify({
+        "image_path": final_img,
+        "image":      f"data:image/jpeg;base64,{img_b64}" if img_b64 else None,
+        "description": description
+    })
+
 
 if __name__ == "__main__":
     # 开发时跑 5001 端口
