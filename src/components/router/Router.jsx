@@ -2,8 +2,6 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "../../App";
 import Home from "../../pages/home/Home";
 import UserDashboard from "../../pages/userDashboard/UserDashboard";
-import ContractInteractor from "../ContractInteractor"; // Import the new component
-// All other page imports are removed
 
 const router = createBrowserRouter([
     {
@@ -17,14 +15,8 @@ const router = createBrowserRouter([
             {
                 path: '/userdashboard',
                 element: <UserDashboard></UserDashboard>
-            },
-            {
-                path: '/interact',
-                element: <ContractInteractor /> // Add the new route
             }
-            // All other routes are removed.
-            // We can add a Pet Details page route here later.
-            // Example: { path: '/pet/:id', element: <PetDetailsPage /> }
+            // The route for '/interact' is removed.
         ]
     }
 ]);

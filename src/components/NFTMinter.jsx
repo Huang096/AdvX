@@ -1,261 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { FaTimes } from 'react-icons/fa';
-import { NFT_ABI, NFT_CONTRACT_ADDRESS, createNFTMetadata, INJECTIVE_TESTNET } from '../contract/nftContract';
+import React, { useState } from 'react';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import PetNFTAbi from '../contract/build/SimplePetNFT.json';
+import contractConfig from '../contract/config.json';
+import axios from 'axios';
 
-// --- 您的 Cloudinary 配置 ---
-const CLOUDINARY_CLOUD_NAME = "dqhu7cgrl"; // <-- 已替换
-const CLOUDINARY_UPLOAD_PRESET = "dognft"; // <-- 已替换
-// ------------------------------
+// --- Cloudinary & Pinata Configuration ---
+const CLOUDINARY_CLOUD_NAME = 'dqhu7cgrl';
+const CLOUDINARY_UPLOAD_PRESET = 'dognft';
+const PINATA_JWT = import.meta.env.VITE_PINATA_JWT || 'YOUR_PINATA_JWT_HERE'; // Remember to set this in .env.local
 
 const NFTMinter = ({ onNftMinted }) => {
-    const { address, isConnected, chain } = useAccount();
-    const [nftName, setNftName] = useState('');
-    const [nftDescription, setNftDescription] = useState('');
-    const [uploadedImages, setUploadedImages] = useState([]); // <-- State for multiple images
-    const [isUploading, setIsUploading] = useState(false);
-    const [isMinting, setIsMinting] = useState(false);
+    const { address, isConnected } = useAccount();
+    const { data: hash, writeContract, isPending, error: writeError } = useWriteContract();
 
-    const { writeContractAsync, data: hash, error, isPending } = useWriteContract();
-    
-    const { isLoading: isConfirming, isSuccess: isConfirmed, data: receipt } = 
-        useWaitForTransactionReceipt({ hash });
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [imageFile, setImageFile] = useState(null); // State for the selected image file
+    const [status, setStatus] = useState('idle'); // idle, uploadingImage, uploadingMeta, minting, success, error
 
-    // 当交易确认后，调用回调函数 (仅用于之前的单次铸造逻辑，批量铸造有自己的处理)
-    useEffect(() => {
-        if (isConfirmed && receipt && onNftMinted && Number(uploadedImages.length) === 1 && !isMinting) {
-            const mintedData = {
-                name: nftName,
-                description: nftDescription,
-                imageUrl: uploadedImages[0].url, // Assuming only one image for now
-                txHash: receipt.transactionHash,
-                timestamp: new Date().toISOString(),
-            };
-            onNftMinted([mintedData]); // Pass as an array
-            resetForm();
+    const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+    // Step 1: Upload image to Cloudinary
+    const handleImageUpload = async () => {
+        if (!imageFile) {
+            alert("请选择一张图片。");
+            return null;
         }
-    }, [isConfirmed, receipt]);
+        setStatus('uploadingImage');
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-    // Handle multiple file uploads
-    const handleImageUpload = async (event) => {
-        const files = event.target.files;
-        if (!files || files.length === 0) return;
-
-        setIsUploading(true);
         try {
-            const uploadPromises = Array.from(files).map(file => {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-                return fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                    method: 'POST',
-                    body: formData,
-                }).then(response => response.json());
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData,
             });
+            const data = await response.json();
+            if (!data.secure_url) {
+                throw new Error('Cloudinary did not return a secure_url.');
+            }
+            return data.secure_url;
+        } catch (e) {
+            console.error("Error uploading to Cloudinary:", e);
+            setStatus('error');
+            alert("图片上传失败！请检查您的Cloudinary配置。");
+            return null;
+        }
+    };
+    
+    // Step 2: Upload metadata to IPFS
+    const handleUploadToIpfs = async (imageUrl) => {
+        if (!name || !description) {
+            alert("请填写名称和描述。");
+            return null;
+        }
+        if (PINATA_JWT === 'YOUR_PINATA_JWT_HERE') {
+            alert("请配置您的Pinata JWT密钥！");
+            return null;
+        }
 
-            const results = await Promise.all(uploadPromises);
-            const successfulUploads = results
-                .filter(result => result.secure_url)
-                .map(result => ({ url: result.secure_url, name: result.original_filename }));
-            
-            setUploadedImages(prev => [...prev, ...successfulUploads]);
-        } catch (error) {
-            console.error('批量上传图片失败:', error);
-            alert(`部分图片上传失败: ${error.message}`);
-        } finally {
-            setIsUploading(false);
+        setStatus('uploadingMeta');
+        try {
+            const metadata = { name, description, image: imageUrl, attributes: [{ "trait_type": "Type", "value": "Pet Adoption NFT" }] };
+            const response = await axios.post("https://api.pinata.cloud/pinning/pinJSONToIPFS", metadata, {
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PINATA_JWT}` }
+            });
+            return `ipfs://${response.data.IpfsHash}`;
+        } catch (e) {
+            console.error("Error uploading to Pinata:", e);
+            setStatus('error');
+            alert("元数据上传到IPFS失败！");
+            return null;
         }
     };
 
-    // Remove an image from the preview list
-    const removeImage = (urlToRemove) => {
-        setUploadedImages(prev => prev.filter(image => image.url !== urlToRemove));
-    };
-  
-    // Handle minting for all uploaded images
-    const handleMint = async () => {
-        if (!nftName || !nftDescription || uploadedImages.length === 0) {
-            alert('请填写所有字段并至少上传一张图片');
+    // Step 3: Mint NFT
+    const handleMint = async (e) => {
+        e.preventDefault();
+        if (!isConnected) {
+            alert('请先连接钱包！');
             return;
         }
-        setIsMinting(true);
-        try {
-            const newNftsData = [];
-            for (let i = 0; i < uploadedImages.length; i++) {
-                const image = uploadedImages[i];
-                const currentName = `${nftName} #${i + 1}`;
-                const metadata = createNFTMetadata(currentName, nftDescription, image.url);
-                const tokenURI = `data:application/json;base64,${btoa(unescape(encodeURIComponent(JSON.stringify(metadata))))}`;
-                
-                const tx = await writeContractAsync({
-                    address: NFT_CONTRACT_ADDRESS,
-                    abi: NFT_ABI,
-                    functionName: 'mint',
-                    args: [address, tokenURI],
-                });
-                newNftsData.push({ name: currentName, description: nftDescription, imageUrl: image.url, txHash: tx.hash, timestamp: new Date().toISOString() });
-            }
-            onNftMinted(newNftsData);
-            resetForm();
-        } catch (err) {
-            console.error('批量铸造失败:', err);
-        } finally {
-            setIsMinting(false);
+        
+        const imageUrl = await handleImageUpload();
+        if (!imageUrl) return;
+
+        const tokenURI = await handleUploadToIpfs(imageUrl);
+        if (!tokenURI) return;
+
+        setStatus('minting');
+        writeContract({
+            address: contractConfig.petNftAddress,
+            abi: PetNFTAbi.abi,
+            functionName: 'mint',
+            args: [address, tokenURI],
+        });
+    };
+
+    // Effect to trigger the callback when the transaction is confirmed
+    React.useEffect(() => {
+        if (isConfirmed && hash) {
+            setStatus('success');
+            onNftMinted({
+                name,
+                description,
+                imageUrl: URL.createObjectURL(imageFile), // Use local file for immediate display
+                txHash: hash,
+                timestamp: new Date().toISOString(),
+            });
+            // Reset form
+            setName('');
+            setDescription('');
+            setImageFile(null);
         }
-    };
-
-    const resetForm = () => {
-        setNftName('');
-        setNftDescription('');
-        setUploadedImages([]);
-    };
+    }, [isConfirmed, hash, name, description, imageFile, onNftMinted]);
     
-    // 读取用户拥有的NFT数量
-    const { data: balance } = useReadContract({
-        address: NFT_CONTRACT_ADDRESS,
-        abi: NFT_ABI,
-        functionName: 'balanceOf',
-        args: [address],
-        enabled: !!address && NFT_CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000",
-    });
-
-    // 读取总供应量
-    const { data: totalSupply } = useReadContract({
-        address: NFT_CONTRACT_ADDRESS,
-        abi: NFT_ABI,
-        functionName: 'totalSupply',
-        enabled: NFT_CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000",
-    });
-
-    // 检查是否连接到正确的网络
-    const isCorrectNetwork = chain?.id === INJECTIVE_TESTNET.chainId;
+    const isWorking = status === 'uploadingImage' || status === 'uploadingMeta' || status === 'minting' || isConfirming;
 
     return (
-        <div className="max-w-2xl mx-auto p-6 bg-base-200 rounded-lg shadow-lg">
-            <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold mb-2">🐕 宠物领养 NFT 铸造</h2>
-                <p className="text-base-content/70">在 Injective EVM 测试网上铸造你的宠物领养纪念 NFT</p>
-            </div>
-
-            {/* 网络信息 */}
-            <div className="mb-6 p-4 bg-info/10 rounded-lg">
-                <h3 className="font-semibold mb-2">📡 网络信息</h3>
-                <div className="text-sm space-y-1">
-                    <p><strong>网络:</strong> {INJECTIVE_TESTNET.name}</p>
-                    <p><strong>Chain ID:</strong> {INJECTIVE_TESTNET.chainId}</p>
-                    <p><strong>水龙头:</strong> <a href={INJECTIVE_TESTNET.faucetUrl} target="_blank" rel="noopener noreferrer" className="link link-primary">获取测试币</a></p>
-                    <p><strong>浏览器:</strong> <a href={INJECTIVE_TESTNET.explorerUrl} target="_blank" rel="noopener noreferrer" className="link link-primary">查看交易</a></p>
+        <div className="max-w-xl mx-auto">
+            <h3 className="text-xl font-bold mb-4">铸造一个新的狗狗 NFT</h3>
+            <form onSubmit={handleMint} className="space-y-4">
+                <div>
+                    <label className="label"><span className="label-text">名字</span></label>
+                    <input type="text" placeholder="例如：小黄" className="input input-bordered w-full" value={name} onChange={e => setName(e.target.value)} required />
                 </div>
-            </div>
-
-            {/* 连接钱包 */}
-            <div className="mb-6 text-center">
-                <ConnectButton />
-            </div>
-
-            {/* 网络检查 */}
-            {isConnected && !isCorrectNetwork && (
-                <div className="alert alert-warning mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    <span>请切换到 Injective EVM 测试网 (Chain ID: {INJECTIVE_TESTNET.chainId})</span>
+                <div>
+                    <label className="label"><span className="label-text">描述</span></label>
+                    <textarea className="textarea textarea-bordered w-full" placeholder="关于这只狗狗的简短故事" value={description} onChange={e => setDescription(e.target.value)} required></textarea>
                 </div>
-            )}
-
-            {/* 合约状态 */}
-            {isConnected && isCorrectNetwork && (
-                <div className="mb-6 p-4 bg-success/10 rounded-lg">
-                    <h3 className="font-semibold mb-2">📊 合约状态</h3>
-                    <div className="text-sm space-y-1">
-                        <p><strong>合约地址:</strong> {NFT_CONTRACT_ADDRESS}</p>
-                        <p><strong>你的NFT数量:</strong> {balance ? balance.toString() : '0'}</p>
-                        <p><strong>总供应量:</strong> {totalSupply ? totalSupply.toString() : '0'}</p>
-                    </div>
+                <div>
+                    <label className="label"><span className="label-text">上传图片</span></label>
+                    <input type="file" className="file-input file-input-bordered w-full" accept="image/png, image/jpeg, image/gif" onChange={e => setImageFile(e.target.files[0])} required />
+                    {imageFile && <img src={URL.createObjectURL(imageFile)} alt="Preview" className="mt-4 rounded-lg shadow-md max-h-48" />}
+                </div>
+                <button type="submit" className="btn btn-primary w-full" disabled={!isConnected || isWorking}>
+                    {status === 'idle' && '开始铸造'}
+                    {status === 'uploadingImage' && '上传图片中...'}
+                    {status === 'uploadingMeta' && '上传元数据中...'}
+                    {status === 'minting' && '等待钱包确认...'}
+                    {isConfirming && '交易确认中...'}
+                    {status === 'success' && '铸造成功!'}
+                    {status === 'error' && '重试'}
+                </button>
+            </form>
+             {hash && (
+                <div className="mt-4 text-center text-sm">
+                    <p>交易已发送！</p>
+                    <a href={`https://testnet.blockscout.injective.network/tx/${hash}`} target="_blank" rel="noopener noreferrer" className="link link-primary break-all">{hash}</a>
                 </div>
             )}
-
-            {/* NFT铸造表单 */}
-            {isConnected && isCorrectNetwork && (
-                <div className="space-y-6">
-                    <div className="form-control">
-                        <label className="label"><span className="label-text font-semibold">NFT 基础名称</span></label>
-                        <input type="text" placeholder="例如: 我的爱犬系列" className="input input-bordered w-full" value={nftName} onChange={(e) => setNftName(e.target.value)} />
-                    </div>
-
-                    <div className="form-control">
-                        <label className="label"><span className="label-text font-semibold">通用描述</span></label>
-                        <textarea placeholder="这些 NFT 的共同故事..." className="textarea textarea-bordered h-24" value={nftDescription} onChange={(e) => setNftDescription(e.target.value)} />
-                    </div>
-
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-semibold">批量上传图片 (可多选)</span>
-                        </label>
-                        <input
-                            type="file"
-                            accept="image/png, image/jpeg, image/gif"
-                            multiple // <-- Allow multiple file selection
-                            className="file-input file-input-bordered w-full"
-                            onChange={handleImageUpload}
-                            disabled={isUploading || isMinting}
-                        />
-                    </div>
-
-                    {isUploading && <div className="text-center"><span className="loading loading-lg text-primary"></span><p>图片上传中...</p></div>}
-                    
-                    {uploadedImages.length > 0 && (
-                        <div className="mt-4 p-4 bg-base-100 rounded-lg">
-                            <h4 className="font-semibold mb-2">待铸造图片 ({uploadedImages.length} 张):</h4>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                                {uploadedImages.map((image, index) => (
-                                    <div key={index} className="relative group">
-                                        <img src={image.url} alt={image.name} className="w-full h-24 object-cover rounded-md shadow-md" />
-                                        <button onClick={() => removeImage(image.url)} className="btn btn-xs btn-circle btn-error absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <FaTimes />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    <button
-                        className={`btn btn-primary w-full ${(isPending || isUploading || isMinting) ? 'loading' : ''}`}
-                        onClick={handleMint}
-                        disabled={!nftName || !nftDescription || uploadedImages.length === 0 || isPending || isUploading || isMinting}
-                    >
-                        {isMinting ? `铸造中...` : `🎨 为 ${uploadedImages.length} 张图片分别铸造 NFT`}
-                    </button>
-
-                    {hash && !isConfirmed && (
-                        <div className="alert alert-info mt-4">
-                            <div>
-                                <p>交易已提交，正在等待确认...</p>
-                                <p className="text-xs truncate">哈希: <a href={`${INJECTIVE_TESTNET.explorerUrl}/tx/${hash}`} target="_blank" rel="noopener noreferrer" className="link">{hash}</a></p>
-                            </div>
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="alert alert-error mt-4">
-                            <span>错误: {error.message}</span>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* 合约部署提示 */}
-            {NFT_CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000" && (
-                <div className="alert alert-warning">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    <div>
-                        <p className="font-bold">⚠️ 需要部署合约</p>
-                        <p>请先部署 NFT 合约到 Injective EVM 测试网，然后更新 <code>NFT_CONTRACT_ADDRESS</code></p>
-                    </div>
+             {writeError && (
+                <div className="mt-4 text-error text-center text-sm">
+                    <p>错误: {writeError.shortMessage || writeError.message}</p>
                 </div>
             )}
         </div>

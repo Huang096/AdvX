@@ -44,7 +44,7 @@ const injectiveTestnet = {
   testnet: true,
 };
 
-const config = getDefaultConfig({
+export const config = getDefaultConfig({
   appName: 'WHO\'S YOUR MASTER',
   projectId: 'a671fe9e58f0db6ec65ba3aaa32e0315', // 请在这里替换为从 WalletConnect Cloud 复制的完整ID
   chains: [injectiveTestnet], // <-- 只保留 Injective 测试网
