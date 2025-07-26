@@ -3,6 +3,19 @@ import { FaHeart, FaComment, FaImage, FaTimes } from 'react-icons/fa';
 import strayDogImage from '../../assets/stray-dog.png';
 import PostCard from './userProfile/PostCard';
 
+// Import new dog images
+import dog1 from '../../assets/dog1.png';
+import dog2 from '../../assets/dog2.png';
+import dog3 from '../../assets/dog3.png';
+import dog4 from '../../assets/dog4.png';
+import dog5 from '../../assets/dog5.png';
+import dog6 from '../../assets/dog6.png';
+import dog7 from '../../assets/dog7.png';
+import dog8 from '../../assets/dog8.png';
+
+const dogImages = [strayDogImage, dog1, dog2, dog3, dog4, dog5, dog6, dog7, dog8];
+const categories = ['互动深度', '忠实用户', '活跃一致性'];
+
 const PostDetailModal = ({ post, onClose, onLike, onComment, userPoints }) => {
     if (!post) return null;
 
@@ -156,6 +169,7 @@ const ContentPlaza = ({ userType, userPoints, setUserPoints }) => {
             timestamp: "2小时前",
             likes: 15,
             isLiked: false,
+            category: '互动深度',
         },
         { 
             id: 2, 
@@ -168,8 +182,22 @@ const ContentPlaza = ({ userType, userPoints, setUserPoints }) => {
             isLiked: false,
             comments: [
                 { id: 3, author: '铲屎官-C', text: '太萌了，想抱走！' }
-            ]
-        }
+            ],
+            category: '忠实用户',
+        },
+        // Add more posts with random categories and images
+        ...Array.from({ length: 10 }, (_, i) => ({
+            id: i + 3,
+            author: `流浪动物守护者${i+1}`,
+            authorAvatar: `https://i.pravatar.cc/150?u=a${i}`,
+            content: `这是我们救助的第${i+3}只小可爱，它现在需要一个温暖的家。`,
+            image: dogImages[(i + 1) % dogImages.length],
+            timestamp: `${i+1}天前`,
+            likes: Math.floor(Math.random() * 100),
+            isLiked: false,
+            category: i % 4 === 0 ? categories[i % categories.length] : undefined, // Randomly assign a category, or none
+            comments: Math.random() > 0.5 ? [{id: Date.now(), author: '路人甲', text: '好可爱！'}] : []
+        }))
     ];
 
     const [posts, setPosts] = useState(initialPosts);

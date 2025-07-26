@@ -3,6 +3,15 @@ import { FaPlus, FaExternalLinkAlt, FaTimes } from 'react-icons/fa';
 import NFTMinter from '../../../components/NFTMinter';
 import contractConfig from '../../../contract/config.json';
 
+// Import placeholder images
+import placeholder1 from '../../../assets/nft_placeholders/nft_placeholder_1.png';
+import placeholder2 from '../../../assets/nft_placeholders/nft_placeholder_2.png';
+import placeholder3 from '../../../assets/nft_placeholders/nft_placeholder_3.png';
+import placeholder4 from '../../../assets/nft_placeholders/nft_placeholder_4.png';
+import placeholder5 from '../../../assets/nft_placeholders/nft_placeholder_5.png';
+
+const placeholderImages = [placeholder1, placeholder2, placeholder3, placeholder4, placeholder5];
+
 const LOCAL_STORAGE_KEY = 'my-doggo-nfts-v2';
 
 // Re-usable NFT Card component
@@ -26,7 +35,12 @@ const MyDoggoNFTs = () => {
     useEffect(() => {
         try {
             const storedNfts = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-            setMyNfts(storedNfts);
+            // Assign a placeholder image to each loaded NFT
+            const nftsWithPlaceholders = storedNfts.map((nft, index) => ({
+                ...nft,
+                imageUrl: placeholderImages[index % placeholderImages.length]
+            }));
+            setMyNfts(nftsWithPlaceholders);
         } catch (error) {
             console.error("Failed to parse NFTs from localStorage", error);
             setMyNfts([]);
@@ -35,12 +49,18 @@ const MyDoggoNFTs = () => {
 
     // Callback function for when a new NFT is successfully minted
     const handleNftMinted = (newNftData) => {
+        // Assign a placeholder image to the new NFT
+        const newNftWithPlaceholder = {
+            ...newNftData,
+            imageUrl: placeholderImages[myNfts.length % placeholderImages.length]
+        };
+
         // Add the new NFT to the start of the list
-        const updatedNfts = [newNftData, ...myNfts];
+        const updatedNfts = [newNftWithPlaceholder, ...myNfts];
         setMyNfts(updatedNfts);
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedNfts));
         setShowMinter(false); // Hide the minter panel after success
-        setSelectedNft(newNftData); // Automatically show details for the new NFT
+        setSelectedNft(newNftWithPlaceholder); // Automatically show details for the new NFT
     };
 
     return (
