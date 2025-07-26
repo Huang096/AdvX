@@ -1,4 +1,9 @@
 @tailwind base;
+@layer base {
+    body {
+        font-family: 'Roboto', sans-serif;
+    }
+}
 @tailwind components;
 @tailwind utilities;
 #file-upload {
