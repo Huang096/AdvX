@@ -9,8 +9,8 @@ import base64
 import cv2
 
 # 打印下当前环境，方便调试
-print("当前 Python 可执行文件：", sys.executable)
-print("当前 sys.path：", sys.path)
+# print("当前 Python 可执行文件：", sys.executable)
+# print("当前 sys.path：", sys.path)
 
 # OpenAI 客户端（Kimi Vision）
 from openai import OpenAI
@@ -46,7 +46,7 @@ def compare_images_with_user(user_image: str, candidate_images: list[str]) -> st
         ]
     )
     text = resp.choices[0].message.content
-    print("\n== Kimi 模型回复 ==\n", text)
+    # print("\n== Kimi 模型回复 ==\n", text)
 
     # 简单匹配 “图片 X” 来选出最像的那张
     for idx, img in enumerate(candidate_images, start=1):
@@ -59,6 +59,7 @@ def compare_images_with_user(user_image: str, candidate_images: list[str]) -> st
 from .utils.keypoint_detection.run_human_keypoints import detect_kps
 from .utils.ratio.compute_human_ratios     import extract_points, compute_ratios
 from .utils.ratio.compare_ratios           import load_ratios, weighted_dist, WEIGHTS
+from .kimi.myPost.textGen import describe_image_with_kimi
 
 def pipeline(image_path, human_kpt_dir, human_ratio_dir,
 dog_ratio_dir, dog_img_dir, top_k=3):
@@ -87,7 +88,7 @@ dog_ratio_dir, dog_img_dir, top_k=3):
         # 选第一张
         first = files[0]
         image_path = os.path.join(image_path, first)
-        print(f"▶️ 输入是目录，选用第一张人脸图：{image_path}")
+        # print(f"▶️ 输入是目录，选用第一张人脸图：{image_path}")
     # —— 目录处理完毕，下面开始原有流程 —— 
 
     os.makedirs(human_kpt_dir, exist_ok=True)
@@ -102,7 +103,7 @@ dog_ratio_dir, dog_img_dir, top_k=3):
     kpt_out = os.path.join(human_kpt_dir, base + ".json")
     with open(kpt_out, "w") as f:
         json.dump({"image": image_path, "keypoints": kps}, f, indent=2)
-    print(f"[HUMAN] 关键点已保存至 {kpt_out}")
+    # print(f"[HUMAN] 关键点已保存至 {kpt_out}")
 
     # 2) 计算 ratios
     pts = extract_points(kps)
@@ -114,7 +115,7 @@ dog_ratio_dir, dog_img_dir, top_k=3):
     ratio_out = os.path.join(human_ratio_dir, base + "_ratios.json")
     with open(ratio_out, "w") as f:
         json.dump({"image": image_path, "ratios": ratios}, f, indent=2)
-    print(f"[HUMAN] ratios 已保存至 {ratio_out}")
+    # print(f"[HUMAN] ratios 已保存至 {ratio_out}")
 
     # 3) ratio 排序
     human_ratios = ratios
@@ -135,10 +136,10 @@ dog_ratio_dir, dog_img_dir, top_k=3):
 
     # 4) 构造 6 张用于语义比对的子集
     top3 = results[:3]
-    pick2 = random.sample(top3, k=min(2, len(top3)))
-    rest = results[3:]
-    pick4 = random.sample(rest, k=min(4, len(rest)))
-    subset = pick2 + pick4
+    pick1 = random.sample(top3, k=1)
+    rest  = results[3:]
+    pick5 = random.sample(rest,   k=min(5, len(rest)))
+    subset = pick1 + pick5
 
     # 根据 JSON 名称揪出真实图片路径
     def json2img(fn: str):
@@ -152,11 +153,20 @@ dog_ratio_dir, dog_img_dir, top_k=3):
     candidate_imgs = [json2img(fn) for fn, _ in subset]
 
     # 5) 调用 Kimi 做“人性化”比对
-    print("\n🔍 调用 Kimi Vision 进行语义比对...")
+    # print("\n🔍 调用 Kimi Vision 进行语义比对...")
     final = compare_images_with_user(image_path, candidate_imgs)
-    print(f"\n🎉 最终最贴合的狗狗图片是：{final}")
+    # print(f"\n🎉 最终最贴合的狗狗图片是：{final}")
 
-    return results, final
+    # 6) 调用 Kimi 生成狗狗文字描述
+    # print("\n📝 调用 Kimi 生成文字描述...")
+    description = describe_image_with_kimi(final)
+    # print(f"\n📄 狗狗描述：{description}")
+
+    print("final   =", final)
+    print("desc    =", description)
+
+    # testing for not returning result, I think that's fine
+    return final, description
 
 
 def main():
