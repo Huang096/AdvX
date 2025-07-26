@@ -106,7 +106,7 @@ async function main() {
     const rewardPoolHash = await walletClient.deployContract({
         abi: rewardPoolArtifact.abi,
         bytecode: `0x${rewardPoolArtifact.bytecode}`,
-        args: [petNftAddress], // Pass the newly deployed NFT contract address to the constructor
+        args: [], // The constructor no longer takes any arguments
     });
     console.log(`  -> Deployment transaction sent. Hash: ${rewardPoolHash}`);
     const rewardPoolReceipt = await publicClient.waitForTransactionReceipt({ hash: rewardPoolHash });

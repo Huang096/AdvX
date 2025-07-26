@@ -7,7 +7,7 @@ import { parseGwei } from 'viem';
 import PrizePoolDisplay from '../../components/PrizePoolDisplay';
 import DonationBox from '../../components/DonationBox';
 import contractConfig from '../../contract/config.json';
-import demoRewardPoolAbi from '../../contract/build/DemoRewardPool.json';
+import rewardPoolAbi from '../../contract/build/RewardPool.json'; // 1. Use the main RewardPool ABI
 
 const RulesAndPrizes = () => {
     // Mock data for demo purposes
@@ -23,9 +23,9 @@ const RulesAndPrizes = () => {
 
     const handleClaimRewards = () => {
         writeContract({
-            address: contractConfig.demoRewardPoolAddress,
-            abi: demoRewardPoolAbi.abi,
-            functionName: 'distributeRewards',
+            address: contractConfig.rewardPoolAddress, // 2. Use the main RewardPool address
+            abi: rewardPoolAbi.abi,
+            functionName: 'distributeAllToDemoAddress', // 3. Use the correct function name
             args: [],
         });
     };
@@ -50,7 +50,7 @@ const RulesAndPrizes = () => {
                 title: '奖励已成功领取!',
                 html: `
                     <div class="text-left text-sm">
-                        <p class="mb-2">交易已在链上确认！合约中的所有资金已分配至以下地址:</p>
+                        <p class="mb-2">交易已在链上确认！合约 (<code class="text-xs">${contractConfig.rewardPoolAddress}</code>) 中的所有资金已分配至以下地址:</p>
                         <p class="mb-4"><code class="text-xs bg-gray-200 text-gray-800 p-1 rounded break-all">${targetAddress}</code></p>
                         <div class="border-t pt-3 mt-3 font-bold">模拟奖励分配详情:</div>
                         ${distributionDetails}

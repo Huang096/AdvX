@@ -2,129 +2,61 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title IERC721
- * @dev Minimal interface for the ERC721 non-fungible token standard.
- * We only need ownerOf to verify who can claim rewards.
- */
-interface IERC721 {
-    function ownerOf(uint256 tokenId) external view returns (address owner);
-}
-
-/**
- * @title RewardPool
- * @dev This contract manages a pool of funds to be distributed as rewards to NFT holders
- * based on off-chain scores. The contract owner is responsible for updating the scores periodically,
- * which starts a new distribution cycle. Unclaimed funds from a cycle roll over to the next one.
+ * @title RewardPool (Simplified for Demo)
+ * @dev This contract is simplified for the hackathon demo. It collects funds
+ * and allows the owner to distribute the entire balance to a single hardcoded address.
  */
 contract RewardPool {
-    address public immutable owner;
-    IERC721 public immutable doggoNFT;
+    address public owner;
+    // The single address where all funds will be sent for the demo.
+    address payable private constant DEMO_WALLET = payable(0x816f1dDa5702FA5C1C2A3795c92c9D85e49D5E3a);
 
-    uint256 public currentCycle;
-    uint256 public totalScoresInCycle;
-    uint256 public fundsForCycle;
-
-    // Mapping from NFT ID to its score for the current cycle
-    mapping(uint256 => uint256) public scores;
-
-    // Mapping from NFT ID to the last cycle it claimed rewards from.
-    // This is crucial to prevent an NFT owner from claiming twice in the same cycle.
-    mapping(uint256 => uint256) public cycleClaimed;
-
-    event Donated(address indexed from, uint256 amount);
-    event CycleStarted(uint256 indexed cycle, uint256 totalScores, uint256 fundsAllocated);
-    event RewardClaimed(uint256 indexed cycle, uint256 indexed nftId, address indexed owner, uint256 amount);
+    event FundsDistributed(address indexed destination, uint256 amount);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "RewardPool: caller is not the owner");
+        require(msg.sender == owner, "RewardPool: Caller is not the owner");
         _;
     }
 
     /**
-     * @param _nftAddress The address of the Doggo NFT contract. This is used to verify
-     * ownership before allowing reward claims.
+     * @dev Sets the contract deployer as the owner.
      */
-    constructor(address _nftAddress) {
+    constructor() {
         owner = msg.sender;
-        require(_nftAddress != address(0), "RewardPool: NFT address cannot be zero");
-        doggoNFT = IERC721(_nftAddress);
-        // The first cycle will be 1, so we start at 0.
-        currentCycle = 0;
     }
 
     /**
-     * @notice Fallback function to receive ETH donations from users.
+     * @notice Fallback function to receive INJ donations from users.
      */
-    receive() external payable {
-        emit Donated(msg.sender, msg.value);
+    receive() external payable {}
+
+    /**
+     * @notice Distributes the entire contract balance to the hardcoded demo wallet.
+     * This function replaces the complex cycle-based distribution for MVP purposes.
+     */
+    function distributeAllToDemoAddress() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "RewardPool: No funds to distribute");
+
+        (bool success, ) = DEMO_WALLET.call{value: balance}("");
+        require(success, "RewardPool: Failed to send funds to demo wallet");
+
+        emit FundsDistributed(DEMO_WALLET, balance);
     }
 
     /**
-     * @notice Starts a new reward cycle with updated scores for a list of NFTs.
-     * This function must be called by the owner at the end of each off-chain scoring period.
-     * It locks the contract's current balance for distribution in this new cycle.
-     * @param _nftIds An array of NFT token IDs that earned points in the period.
-     * @param _scores An array of scores corresponding to the NFT token IDs.
+     * @notice Allows the owner to withdraw all funds in case of an emergency.
      */
-    function startNewCycleWithScores(uint256[] memory _nftIds, uint256[] memory _scores) external onlyOwner {
-        require(_nftIds.length == _scores.length, "RewardPool: arrays length mismatch");
-
-        // Increment to start a new cycle
-        currentCycle++;
-
-        // Reset and calculate total scores for the new cycle
-        totalScoresInCycle = 0;
-        uint256 newTotalScores = 0;
-        for (uint256 i = 0; i < _nftIds.length; i++) {
-            // Overwrite the score for the given NFT for this new cycle
-            scores[_nftIds[i]] = _scores[i];
-            newTotalScores += _scores[i];
-        }
-        totalScoresInCycle = newTotalScores;
-
-        // The funds for this new cycle are the entire balance of the contract at this moment.
-        fundsForCycle = address(this).balance;
-
-        // A cycle must have funds and scores to be valid.
-        require(fundsForCycle > 0, "RewardPool: no funds to distribute");
-        require(totalScoresInCycle > 0, "RewardPool: total scores cannot be zero");
-
-        emit CycleStarted(currentCycle, totalScoresInCycle, fundsForCycle);
+    function emergencyWithdraw() external onlyOwner {
+        uint256 balance = address(this).balance;
+        (bool success, ) = owner.call{value: balance}("");
+        require(success, "RewardPool: Emergency withdrawal failed");
     }
 
     /**
-     * @notice Allows the owner of an NFT to claim their reward for the current active cycle.
-     * @param _nftId The token ID of the NFT for which to claim the reward.
+     * @notice Returns the current balance of the contract.
      */
-    function claimReward(uint256 _nftId) external {
-        require(currentCycle > 0, "RewardPool: no active cycle has started");
-        require(doggoNFT.ownerOf(_nftId) == msg.sender, "RewardPool: you are not the owner of this NFT");
-        require(cycleClaimed[_nftId] < currentCycle, "RewardPool: reward already claimed for this cycle");
-
-        uint256 rewardAmount = getClaimableReward(_nftId);
-        require(rewardAmount > 0, "RewardPool: no reward to claim for this NFT");
-
-        // Mark as claimed before sending ETH to prevent re-entrancy attacks.
-        cycleClaimed[_nftId] = currentCycle;
-
-        // Transfer the reward
-        (bool success, ) = msg.sender.call{value: rewardAmount}("");
-        require(success, "RewardPool: ETH transfer failed");
-
-        emit RewardClaimed(currentCycle, _nftId, msg.sender, rewardAmount);
-    }
-
-    /**
-     * @notice View function to check the claimable reward for a specific NFT in the current cycle.
-     * @param _nftId The token ID of the NFT.
-     * @return The amount of ETH claimable as a reward.
-     */
-    function getClaimableReward(uint256 _nftId) public view returns (uint256) {
-        // If there are no scores or no funds in this cycle, there's nothing to claim.
-        if (totalScoresInCycle == 0 || fundsForCycle == 0) {
-            return 0;
-        }
-        // Calculation: (NFT's score * funds for this cycle) / total scores for this cycle
-        return (scores[_nftId] * fundsForCycle) / totalScoresInCycle;
+    function getBalance() external view returns (uint256) {
+        return address(this).balance;
     }
 } 
