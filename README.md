@@ -19,3 +19,5 @@
 5. 这就是完整的匹配流程，其中还有几个写了一半 or 写了没用上的功能 以及非常多的可以优化/重做的模块。后续的update我会尝试把每一步都记录下来，有需要的朋友随时找我。
 
 AdvX % python -m ratio_similarity.app
+
+datasource：https://www.kaggle.com/datasets/georgemartvel/dogflw by George Martvel
