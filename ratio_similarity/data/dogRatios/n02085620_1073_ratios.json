@@ -1,0 +1,9 @@
+{
+  "ratios": {
+    "eye_distance_ratio": 0.8045,
+    "nose_width_eye_width_ratio": 0.8833,
+    "mouth_eye_ratio": 0.8542,
+    "nose_mouth_vertical_ratio": 0.1657,
+    "chin_nose_to_upperface_ratio": 0.6309
+  }
+}
