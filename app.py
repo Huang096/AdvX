@@ -9,8 +9,8 @@ from ratio_similarity.utils.ratio.compute_human_ratios import compute_ratios, ex
 from ratio_similarity.utils.keypoint_detection.run_human_keypoints import detect_kps
 
 BASE_DIR = os.path.dirname(__file__)
-DOG_RATIO_DIR = os.path.join(BASE_DIR, "data", "dogRatios")
-DOG_IMAGE_DIR = os.path.join(BASE_DIR, "data", "images")
+DOG_RATIO_DIR = os.path.join(BASE_DIR, "ratio_similarity", "data", "dogRatios")
+DOG_IMAGE_DIR = os.path.join(BASE_DIR, "ratio_similarity", "data", "images")
 
 # 映射：狗 ratio 字段 -> 人 ratio 字段
 FIELD_MAP = {
