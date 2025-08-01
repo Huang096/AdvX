@@ -1,7 +1,6 @@
 import os
 import json
 import math
-import shutil
 from glob import glob
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -21,10 +20,26 @@ FIELD_MAP = {
     "chin_nose_to_upperface_ratio": "face_aspect_ratio"
 }
 
-app = Flask(__name__)
+# ✅ 初始化 Flask，指向 dist/ 为前端目录
+app = Flask(__name__, static_folder="dist", static_url_path="")
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# 欧氏距离
+# ✅ 前端首页路由（React 页面）
+@app.route("/")
+def serve_frontend():
+    return send_from_directory(app.static_folder, "index.html")
+
+# ✅ 默认图片服务（狗图像）
+@app.route("/static/<filename>")
+def serve_image(filename):
+    return send_from_directory(DOG_IMAGE_DIR, filename)
+
+# ✅ 错误页面 fallback 给 React 路由支持
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory(app.static_folder, "index.html")
+
+# ✅ 欧氏距离计算函数
 def ratio_distance(dog_ratios, human_ratios):
     dist = 0.0
     used = 0
@@ -35,6 +50,7 @@ def ratio_distance(dog_ratios, human_ratios):
             used += 1
     return math.sqrt(dist) if used > 0 else float('inf')
 
+# ✅ 核心匹配接口
 @app.route("/api/ratio-match", methods=["POST"])
 def ratio_match():
     if "image" not in request.files:
@@ -55,13 +71,11 @@ def ratio_match():
         print(f"[DEBUG] 上传图像已保存到：{image_path}")
 
         try:
-            # 1. 检测人脸关键点
             keypoints = detect_kps(image_path)
             if not keypoints:
                 print("❌ 未检测到人脸关键点")
                 return jsonify({"error": "未检测到人脸关键点"}), 400
 
-            # 2. 计算人脸 ratios
             pts = extract_points(keypoints)
             human_ratios = compute_ratios(pts)
             print("[INFO] human_ratios =", human_ratios)
@@ -69,7 +83,6 @@ def ratio_match():
             print("❌ 人脸处理出错：", str(e))
             return jsonify({"error": str(e)}), 500
 
-        # 3. 遍历狗狗 ratios
         dog_files = glob(os.path.join(DOG_RATIO_DIR, '*_ratios.json'))
         all_results = []
         print(f"[INFO] 共找到 {len(dog_files)} 个狗 ratio 文件")
@@ -85,12 +98,12 @@ def ratio_match():
             for ext in [".jpg", ".jpeg", ".png"]:
                 image_name = image_base_name + ext
                 source_image_path = os.path.join(DOG_IMAGE_DIR, image_name)
-                
+
                 if os.path.exists(source_image_path):
                     print(f"[DEBUG] ✅ 找到匹配图片: {source_image_path}")
                     all_results.append({
                         "image_name": image_name,
-                        "image_url": f"http://127.0.0.1:5002/static/{image_name}",
+                        "image_url": f"/static/{image_name}",
                         "distance": round(dist, 4)
                     })
                     found = True
@@ -108,9 +121,7 @@ def ratio_match():
 
         return jsonify({"results": topk})
 
-@app.route("/static/<filename>")
-def serve_image(filename):
-    return send_from_directory(DOG_IMAGE_DIR, filename)
-
+# ✅ 启动（Render 兼容）
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5002, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
