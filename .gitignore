@@ -41,6 +41,8 @@ models/*.pth
 # Project output
 data/human_keypoints/
 data/dog_keypoints/
+data/
+static_images/
 
 db.sqlite
 

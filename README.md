@@ -18,3 +18,4 @@
 4. 这个pipeline会返回两个数据，final_img 和 description。final_img也就是pipelinerun完之后 匹配出来长得最像的狗狗照片，description就是关于这只狗狗的描述，前端就会获取这两个数据然后display在页面里面。（demo里面我们暂时用的是kimi来自动生成对应狗狗的描述，后续的话这种信息肯定是从网上直接获取。因为sacramento的收容所里面，我记得狗狗 相关性格/身体情况/在哪发现的 这些信息记录得很详细。国内的数据源暂时还没看质量怎么样w）。
 5. 这就是完整的匹配流程，其中还有几个写了一半 or 写了没用上的功能 以及非常多的可以优化/重做的模块。后续的update我会尝试把每一步都记录下来，有需要的朋友随时找我。
 
+AdvX % python -m ratio_similarity.app

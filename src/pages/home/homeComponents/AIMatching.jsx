@@ -26,52 +26,67 @@ const AIMatching = () => {
     }
   }, [loading, matchResult]);
 
-  const capture = useCallback(async () => {
+  const capture = useCallback(() => {
     const screenshot = webcamRef.current.getScreenshot();
     if (!screenshot) return;
 
-    const previousUserImage = localStorage.getItem("lastUserImage");
-    if (previousUserImage) {
-      setMasterImage(previousUserImage);
-    }
-    localStorage.setItem("lastUserImage", screenshot);
+    const img = new Image();
+    img.src = screenshot;
 
-    setUserImgSrc(screenshot);
-    setLoading(true);
-    setMatchResult(null);
+    img.onload = async () => {
+      // 1. 手动镜像翻转
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.translate(img.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, 0, 0);
+      const flippedBase64 = canvas.toDataURL("image/jpeg");
 
-    try {
-      // dataURL → Blob
-      const blob = await fetch(screenshot).then((res) => res.blob());
-      const formData = new FormData();
-      formData.append("image", blob, "selfie.jpg");
-
-      // 调用 /api/compare
-      const res = await fetch("http://127.0.0.1:5001/api/compare", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "服务器返回非 2xx 状态");
+      // 2. 更新 UI 显示用图
+      const previousUserImage = localStorage.getItem("lastUserImage");
+      if (previousUserImage) {
+        setMasterImage(previousUserImage);
       }
+      localStorage.setItem("lastUserImage", flippedBase64);
+      setUserImgSrc(flippedBase64);
+      setLoading(true);
+      setMatchResult(null);
 
-      // 设置匹配结果
-      setMatchResult({
-        petImage: data.image, // base64 图像
-        description: data.description, // 文字描述
-      });
-    } catch (err) {
-      console.error("接口调用失败：", err);
-      // 如果要做 UI 测试，可以在这里填 mock
-      setMatchResult({
-        petImage:
-          "https://images.dog.ceo/breeds/terrier-norwich/n02094258_1003.jpg",
-        description: "模拟：这是一只可爱的流浪狗，叫小黄，喜欢打滚……",
-      });
-    } finally {
-      setLoading(false);
-    }
+      try {
+        // 3. 转为 Blob 发送后端
+        const blob = await fetch(flippedBase64).then((res) => res.blob());
+        const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+        const formData = new FormData();
+        formData.append("image", file);
+
+        // 4. 请求后端
+        const res = await fetch("http://127.0.0.1:5002/api/ratio-match", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "服务器返回非 2xx 状态");
+        }
+
+        // 5. 更新结果（使用 URL 显示图）
+        setMatchResult({
+          petImage: data.results[0]?.image_url || "",
+          description: `这只狗和你最像，距离分数是 ${data.results[0]?.distance}`,
+        });
+      } catch (err) {
+        console.error("接口调用失败：", err);
+        setMatchResult({
+          petImage:
+            "https://images.dog.ceo/breeds/terrier-norwich/n02094258_1003.jpg",
+          description: "模拟：这是一只可爱的流浪狗，叫小黄，喜欢打滚……",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
   }, [webcamRef]);
 
   const reset = () => {
@@ -95,7 +110,7 @@ const AIMatching = () => {
                 audio={false}
                 ref={webcamRef}
                 screenshotFormat="image/jpeg"
-                className="w-full h-auto rounded"
+                className="w-full h-auto rounded transform scale-x-[-1]"
               />
             </div>
             <div className="card-actions justify-center">
