@@ -1,121 +1,116 @@
-#!/usr/bin/env python3
 import os
-import tempfile
-import base64
-from flask import Flask, request, jsonify
-from ratio_similarity.main import pipeline  # 导入你现成的 pipeline
-from ratio_similarity.kimi.myPost.textGen import describe_image_with_kimi
-from ratio_similarity.kimi.autoGen.autoGen import autoGen_txt4dog
+import json
+import math
+import shutil
+from glob import glob
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from tempfile import TemporaryDirectory
+from ratio_similarity.utils.ratio.compute_human_ratios import compute_ratios, extract_points
+from ratio_similarity.utils.keypoint_detection.run_human_keypoints import detect_kps
+
+BASE_DIR = os.path.dirname(__file__)
+DOG_RATIO_DIR = os.path.join(BASE_DIR, "data", "dogRatios")
+DOG_IMAGE_DIR = os.path.join(BASE_DIR, "data", "images")
+
+# 映射：狗 ratio 字段 -> 人 ratio 字段
+FIELD_MAP = {
+    "eye_distance_ratio": "eye_width_ratio",
+    "mouth_eye_ratio": "mouth_width_ratio",
+    "nose_mouth_vertical_ratio": "mouth_height_ratio",
+    "chin_nose_to_upperface_ratio": "face_aspect_ratio"
+}
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# dogRatio是肯定不会变的，所以这里写死，后面接数据库就好了
-BASE_DIR      = os.path.dirname(__file__)                # .../AdvX/ratio_similarity
-DOG_RATIO_DIR = os.path.join(BASE_DIR, "data", "dogRatios")
-DOG_IMG_DIR   = os.path.join(BASE_DIR, "data", "dogImg")
+# 欧氏距离
+def ratio_distance(dog_ratios, human_ratios):
+    dist = 0.0
+    used = 0
+    for dog_k, human_k in FIELD_MAP.items():
+        if dog_k in dog_ratios and human_k in human_ratios:
+            d = dog_ratios[dog_k] - human_ratios[human_k]
+            dist += d * d
+            used += 1
+    return math.sqrt(dist) if used > 0 else float('inf')
 
-@app.route("/api/compare", methods=["POST"])
-def compare():
-    # 1. 校验图片
+@app.route("/api/ratio-match", methods=["POST"])
+def ratio_match():
     if "image" not in request.files:
         return jsonify({"error": "No image file"}), 400
+
     file = request.files["image"]
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
 
-    # 2. 读取 top_k 参数（内部仍然传给 pipeline，但我们只关心最终那一张）
     try:
-        top_k = int(request.form.get("top_k", 3))
+        k = int(request.form.get("top_k", 5))
     except ValueError:
-        top_k = 3
+        k = 5
 
-    # 3. 存到临时目录并调用 pipeline
-    with tempfile.TemporaryDirectory() as td:
-        img_path = os.path.join(td, file.filename)
-        file.save(img_path)
-
-        human_kpt_dir   = os.path.join(td, "human_kpt")
-        human_ratio_dir = os.path.join(td, "human_ratio")
+    with TemporaryDirectory() as td:
+        image_path = os.path.join(td, file.filename)
+        file.save(image_path)
+        print(f"[DEBUG] 上传图像已保存到：{image_path}")
 
         try:
-            final_img, description = pipeline(
-                img_path,
-                human_kpt_dir,
-                human_ratio_dir,
-                DOG_RATIO_DIR,
-                DOG_IMG_DIR,
-                top_k=top_k
-            )
+            # 1. 检测人脸关键点
+            keypoints = detect_kps(image_path)
+            if not keypoints:
+                print("❌ 未检测到人脸关键点")
+                return jsonify({"error": "未检测到人脸关键点"}), 400
+
+            # 2. 计算人脸 ratios
+            pts = extract_points(keypoints)
+            human_ratios = compute_ratios(pts)
+            print("[INFO] human_ratios =", human_ratios)
         except Exception as e:
+            print("❌ 人脸处理出错：", str(e))
             return jsonify({"error": str(e)}), 500
 
-        # 4. 把最终选中的图片读成 base64
-        img_b64 = None
-        if os.path.exists(final_img):
-            with open(final_img, "rb") as f:
-                img_b64 = base64.b64encode(f.read()).decode("utf-8")
+        # 3. 遍历狗狗 ratios
+        dog_files = glob(os.path.join(DOG_RATIO_DIR, '*_ratios.json'))
+        all_results = []
+        print(f"[INFO] 共找到 {len(dog_files)} 个狗 ratio 文件")
 
-    # 临时目录清理后返回结果
-    return jsonify({
-        "image_path": final_img,
-        "image":      f"data:image/jpeg;base64,{img_b64}" if img_b64 else None,
-        "description": description
-    })
+        for path in dog_files:
+            with open(path) as f:
+                dog_data = json.load(f)
+            dog_ratios = dog_data.get("ratios", {})
+            dist = ratio_distance(dog_ratios, human_ratios)
+            image_base_name = os.path.basename(path).replace("_ratios.json", "")
 
-@app.route("/api/describe", methods=["POST"])
-def describe():
-    # 1. 校验前端上传的文件字段
-    if "image" not in request.files:
-        return jsonify({"error": "No image file"}), 400
-    file = request.files["image"]
-    if file.filename == "":
-        return jsonify({"error": "Empty filename"}), 400
+            found = False
+            for ext in [".jpg", ".jpeg", ".png"]:
+                image_name = image_base_name + ext
+                source_image_path = os.path.join(DOG_IMAGE_DIR, image_name)
+                
+                if os.path.exists(source_image_path):
+                    print(f"[DEBUG] ✅ 找到匹配图片: {source_image_path}")
+                    all_results.append({
+                        "image_name": image_name,
+                        "image_url": f"http://127.0.0.1:5002/static/{image_name}",
+                        "distance": round(dist, 4)
+                    })
+                    found = True
+                    break
+            if not found:
+                print(f"[DEBUG] ❌ 没找到对应图像: {image_base_name}.[jpg/jpeg/png]")
 
-    # 2. 保存到临时目录
-    with tempfile.TemporaryDirectory() as td:
-        img_path = os.path.join(td, file.filename)
-        file.save(img_path)
+        topk = sorted(all_results, key=lambda x: x["distance"])[:k]
+        print("\n📊 Top {} 最像的人类狗狗结果：".format(k))
+        for i, item in enumerate(topk, 1):
+            print(f"#{i}: {item['image_name']} → Distance = {item['distance']}")
 
-        try:
-            # 3. 调用 textGen.py 中的函数，传入本地图片路径
-            description = describe_image_with_kimi(img_path)
-        except Exception as e:
-            # 上游任何异常都返回 500，并把错误信息透出来
-            return jsonify({"error": str(e)}), 500
+        print("[DEBUG] 最终 topk 返回结果：")
+        print(json.dumps(topk, indent=2, ensure_ascii=False))
 
-    # 4. 返回纯文本描述
-    return jsonify({
-        "description": description
-    })
+        return jsonify({"results": topk})
 
-@app.route("/api/autogen", methods=["POST"])
-def autogen():
-    # 1. 校验图片
-    if "image" not in request.files:
-        return jsonify({"error": "No image file"}), 400
-    file = request.files["image"]
-    if file.filename == "":
-        return jsonify({"error": "Empty filename"}), 400
-
-    # 2. 保存到临时目录
-    with tempfile.TemporaryDirectory() as td:
-        img_path = os.path.join(td, file.filename)
-        file.save(img_path)
-
-        try:
-            # 3. 调用 autoGen.py 中的函数
-            result = autoGen_txt4dog(img_path)
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-
-    # 4. 返回生成的文本
-    return jsonify({
-        "text": result
-    })
-
+@app.route("/static/<filename>")
+def serve_image(filename):
+    return send_from_directory(DOG_IMAGE_DIR, filename)
 
 if __name__ == "__main__":
-    # 开发时跑 5001 端口
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5002, debug=True)

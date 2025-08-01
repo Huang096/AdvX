@@ -39,8 +39,16 @@ models/*.pth
 *.onnx
 
 # Project output
-data/human_keypoints/
-data/dog_keypoints/
+ratio_similarity/data/human_keypoints/
+ratio_similarity/data/dog_keypoints/
+ratio_similarity/data/adjustedImg/
+ratio_similarity/data/humanImg/
+ratio_similarity/data/humanKeypoint/
+ratio_similarity/data/humanRatios/
+ratio_similarity/data/dogImg/
+
+
+static_images/
 
 db.sqlite
 
